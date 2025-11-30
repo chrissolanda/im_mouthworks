@@ -580,6 +580,20 @@ const patientService = {
         if (error) throw error;
         return data;
     },
+    async getByName (name) {
+        try {
+            const { data, error } = await getSupabase().from("patients").select("*").ilike("name", name).maybeSingle();
+            if (error) {
+                console.error("[v0] Supabase error fetching patient by name:", error);
+                throw new Error(`Failed to fetch patient by name: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in patientService.getByName():", errorMsg);
+            throw err;
+        }
+    },
     async create (patient) {
         const { data, error } = await getSupabase().from("patients").insert([
             patient
@@ -1752,6 +1766,11 @@ function HRPatients() {
     ];
     const handleAddPatient = async (data)=>{
         try {
+            // Check for duplicate patient name
+            const existingPatient = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2d$service$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["patientService"].getByName(data.name);
+            if (existingPatient) {
+                throw new Error(`Patient with name '${data.name}' already exists. Please use a different name.`);
+            }
             const newPatient = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2d$service$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["patientService"].create(data);
             if (newPatient) {
                 setPatients([
@@ -1797,7 +1816,7 @@ function HRPatients() {
                                         children: "Manage Patients"
                                     }, void 0, false, {
                                         fileName: "[project]/app/hr/patients/page.tsx",
-                                        lineNumber: 116,
+                                        lineNumber: 122,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1805,13 +1824,13 @@ function HRPatients() {
                                         children: "Add, edit, and manage patient records"
                                     }, void 0, false, {
                                         fileName: "[project]/app/hr/patients/page.tsx",
-                                        lineNumber: 117,
+                                        lineNumber: 123,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/hr/patients/page.tsx",
-                                lineNumber: 115,
+                                lineNumber: 121,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -1822,20 +1841,20 @@ function HRPatients() {
                                         className: "w-4 h-4"
                                     }, void 0, false, {
                                         fileName: "[project]/app/hr/patients/page.tsx",
-                                        lineNumber: 123,
+                                        lineNumber: 129,
                                         columnNumber: 13
                                     }, this),
                                     "Add Patient"
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/hr/patients/page.tsx",
-                                lineNumber: 119,
+                                lineNumber: 125,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/hr/patients/page.tsx",
-                        lineNumber: 114,
+                        lineNumber: 120,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
@@ -1848,7 +1867,7 @@ function HRPatients() {
                                         className: "absolute left-3 top-2.5 w-4 h-4 text-muted-foreground"
                                     }, void 0, false, {
                                         fileName: "[project]/app/hr/patients/page.tsx",
-                                        lineNumber: 132,
+                                        lineNumber: 138,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Input"], {
@@ -1859,23 +1878,23 @@ function HRPatients() {
                                         className: "pl-10 border-border"
                                     }, void 0, false, {
                                         fileName: "[project]/app/hr/patients/page.tsx",
-                                        lineNumber: 133,
+                                        lineNumber: 139,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/hr/patients/page.tsx",
-                                lineNumber: 131,
+                                lineNumber: 137,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/hr/patients/page.tsx",
-                            lineNumber: 130,
+                            lineNumber: 136,
                             columnNumber: 11
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/app/hr/patients/page.tsx",
-                        lineNumber: 129,
+                        lineNumber: 135,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
@@ -1886,7 +1905,7 @@ function HRPatients() {
                                         children: "Patient Records"
                                     }, void 0, false, {
                                         fileName: "[project]/app/hr/patients/page.tsx",
-                                        lineNumber: 147,
+                                        lineNumber: 153,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardDescription"], {
@@ -1896,13 +1915,13 @@ function HRPatients() {
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/hr/patients/page.tsx",
-                                        lineNumber: 148,
+                                        lineNumber: 154,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/hr/patients/page.tsx",
-                                lineNumber: 146,
+                                lineNumber: 152,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1911,7 +1930,7 @@ function HRPatients() {
                                     children: "Loading patients..."
                                 }, void 0, false, {
                                     fileName: "[project]/app/hr/patients/page.tsx",
-                                    lineNumber: 152,
+                                    lineNumber: 158,
                                     columnNumber: 15
                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "overflow-x-auto",
@@ -1927,7 +1946,7 @@ function HRPatients() {
                                                             children: "Name"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/hr/patients/page.tsx",
-                                                            lineNumber: 158,
+                                                            lineNumber: 164,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -1935,7 +1954,7 @@ function HRPatients() {
                                                             children: "Email"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/hr/patients/page.tsx",
-                                                            lineNumber: 159,
+                                                            lineNumber: 165,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -1943,7 +1962,7 @@ function HRPatients() {
                                                             children: "Phone"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/hr/patients/page.tsx",
-                                                            lineNumber: 160,
+                                                            lineNumber: 166,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -1951,7 +1970,7 @@ function HRPatients() {
                                                             children: "DOB"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/hr/patients/page.tsx",
-                                                            lineNumber: 161,
+                                                            lineNumber: 167,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -1959,7 +1978,7 @@ function HRPatients() {
                                                             children: "Gender"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/hr/patients/page.tsx",
-                                                            lineNumber: 162,
+                                                            lineNumber: 168,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -1967,7 +1986,7 @@ function HRPatients() {
                                                             children: "Joined"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/hr/patients/page.tsx",
-                                                            lineNumber: 163,
+                                                            lineNumber: 169,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("th", {
@@ -1975,18 +1994,18 @@ function HRPatients() {
                                                             children: "Actions"
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/hr/patients/page.tsx",
-                                                            lineNumber: 164,
+                                                            lineNumber: 170,
                                                             columnNumber: 23
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/hr/patients/page.tsx",
-                                                    lineNumber: 157,
+                                                    lineNumber: 163,
                                                     columnNumber: 21
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/hr/patients/page.tsx",
-                                                lineNumber: 156,
+                                                lineNumber: 162,
                                                 columnNumber: 19
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("tbody", {
@@ -1997,12 +2016,12 @@ function HRPatients() {
                                                         children: "No patients found"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/hr/patients/page.tsx",
-                                                        lineNumber: 170,
+                                                        lineNumber: 176,
                                                         columnNumber: 25
                                                     }, this)
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/hr/patients/page.tsx",
-                                                    lineNumber: 169,
+                                                    lineNumber: 175,
                                                     columnNumber: 23
                                                 }, this) : filteredPatients.map((patient)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("tr", {
                                                         className: "border-b border-border hover:bg-muted/50 transition-colors",
@@ -2012,7 +2031,7 @@ function HRPatients() {
                                                                 children: patient.name
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/hr/patients/page.tsx",
-                                                                lineNumber: 177,
+                                                                lineNumber: 183,
                                                                 columnNumber: 27
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -2020,7 +2039,7 @@ function HRPatients() {
                                                                 children: patient.email
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/hr/patients/page.tsx",
-                                                                lineNumber: 178,
+                                                                lineNumber: 184,
                                                                 columnNumber: 27
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -2028,7 +2047,7 @@ function HRPatients() {
                                                                 children: patient.phone || "-"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/hr/patients/page.tsx",
-                                                                lineNumber: 179,
+                                                                lineNumber: 185,
                                                                 columnNumber: 27
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -2036,7 +2055,7 @@ function HRPatients() {
                                                                 children: patient.dob || "-"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/hr/patients/page.tsx",
-                                                                lineNumber: 180,
+                                                                lineNumber: 186,
                                                                 columnNumber: 27
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -2044,7 +2063,7 @@ function HRPatients() {
                                                                 children: patient.gender || "-"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/hr/patients/page.tsx",
-                                                                lineNumber: 181,
+                                                                lineNumber: 187,
                                                                 columnNumber: 27
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -2052,7 +2071,7 @@ function HRPatients() {
                                                                 children: patient.created_at ? new Date(patient.created_at).toLocaleDateString() : "-"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/hr/patients/page.tsx",
-                                                                lineNumber: 182,
+                                                                lineNumber: 188,
                                                                 columnNumber: 27
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("td", {
@@ -2067,12 +2086,12 @@ function HRPatients() {
                                                                                 className: "w-4 h-4"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/app/hr/patients/page.tsx",
-                                                                                lineNumber: 191,
+                                                                                lineNumber: 197,
                                                                                 columnNumber: 33
                                                                             }, this)
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/app/hr/patients/page.tsx",
-                                                                            lineNumber: 187,
+                                                                            lineNumber: 193,
                                                                             columnNumber: 31
                                                                         }, this),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2081,12 +2100,12 @@ function HRPatients() {
                                                                                 className: "w-4 h-4"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/app/hr/patients/page.tsx",
-                                                                                lineNumber: 194,
+                                                                                lineNumber: 200,
                                                                                 columnNumber: 33
                                                                             }, this)
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/app/hr/patients/page.tsx",
-                                                                            lineNumber: 193,
+                                                                            lineNumber: 199,
                                                                             columnNumber: 31
                                                                         }, this),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -2096,62 +2115,62 @@ function HRPatients() {
                                                                                 className: "w-4 h-4"
                                                                             }, void 0, false, {
                                                                                 fileName: "[project]/app/hr/patients/page.tsx",
-                                                                                lineNumber: 200,
+                                                                                lineNumber: 206,
                                                                                 columnNumber: 33
                                                                             }, this)
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/app/hr/patients/page.tsx",
-                                                                            lineNumber: 196,
+                                                                            lineNumber: 202,
                                                                             columnNumber: 31
                                                                         }, this)
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/app/hr/patients/page.tsx",
-                                                                    lineNumber: 186,
+                                                                    lineNumber: 192,
                                                                     columnNumber: 29
                                                                 }, this)
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/hr/patients/page.tsx",
-                                                                lineNumber: 185,
+                                                                lineNumber: 191,
                                                                 columnNumber: 27
                                                             }, this)
                                                         ]
                                                     }, patient.id, true, {
                                                         fileName: "[project]/app/hr/patients/page.tsx",
-                                                        lineNumber: 176,
+                                                        lineNumber: 182,
                                                         columnNumber: 25
                                                     }, this))
                                             }, void 0, false, {
                                                 fileName: "[project]/app/hr/patients/page.tsx",
-                                                lineNumber: 167,
+                                                lineNumber: 173,
                                                 columnNumber: 19
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/hr/patients/page.tsx",
-                                        lineNumber: 155,
+                                        lineNumber: 161,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/hr/patients/page.tsx",
-                                    lineNumber: 154,
+                                    lineNumber: 160,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/hr/patients/page.tsx",
-                                lineNumber: 150,
+                                lineNumber: 156,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/hr/patients/page.tsx",
-                        lineNumber: 145,
+                        lineNumber: 151,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/hr/patients/page.tsx",
-                lineNumber: 112,
+                lineNumber: 118,
                 columnNumber: 7
             }, this),
             showAddModal && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$modals$2f$add$2d$patient$2d$modal$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -2159,7 +2178,7 @@ function HRPatients() {
                 onSubmit: handleAddPatient
             }, void 0, false, {
                 fileName: "[project]/app/hr/patients/page.tsx",
-                lineNumber: 215,
+                lineNumber: 221,
                 columnNumber: 24
             }, this),
             showViewModal && selectedPatient && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$modals$2f$view$2d$patient$2d$modal$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -2167,13 +2186,13 @@ function HRPatients() {
                 onClose: ()=>setShowViewModal(false)
             }, void 0, false, {
                 fileName: "[project]/app/hr/patients/page.tsx",
-                lineNumber: 218,
+                lineNumber: 224,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/hr/patients/page.tsx",
-        lineNumber: 111,
+        lineNumber: 117,
         columnNumber: 5
     }, this);
 }

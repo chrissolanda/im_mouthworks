@@ -608,6 +608,20 @@ const patientService = {
         if (error) throw error;
         return data;
     },
+    async getByName (name) {
+        try {
+            const { data, error } = await getSupabase().from("patients").select("*").ilike("name", name).maybeSingle();
+            if (error) {
+                console.error("[v0] Supabase error fetching patient by name:", error);
+                throw new Error(`Failed to fetch patient by name: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in patientService.getByName():", errorMsg);
+            throw err;
+        }
+    },
     async create (patient) {
         const { data, error } = await getSupabase().from("patients").insert([
             patient
@@ -633,44 +647,98 @@ const patientService = {
 };
 const appointmentService = {
     async getAll () {
-        const { data, error } = await getSupabase().from("appointments").select("*, patients(name, email), dentists(name)").order("date", {
-            ascending: false
-        });
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("appointments").select("*, patients(name, email), dentists(name)").order("date", {
+                ascending: false
+            });
+            if (error) {
+                console.error("[v0] Supabase error fetching all appointments:", error);
+                throw new Error(`Failed to fetch appointments: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.getAll():", errorMsg);
+            throw err;
+        }
     },
     async getByPatientId (patientId) {
-        const { data, error } = await getSupabase().from("appointments").select("*, patients(name), dentists(name)").eq("patient_id", patientId).order("date", {
-            ascending: false
-        });
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("appointments").select("*, patients(name), dentists(name)").eq("patient_id", patientId).order("date", {
+                ascending: false
+            });
+            if (error) {
+                console.error("[v0] Supabase error fetching patient appointments:", error);
+                throw new Error(`Failed to fetch patient appointments: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.getByPatientId():", errorMsg);
+            throw err;
+        }
     },
     async getByDentistId (dentistId) {
-        const { data, error } = await getSupabase().from("appointments").select("*, patients(name, email), dentists(name)").eq("dentist_id", dentistId).order("date", {
-            ascending: false
-        });
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("appointments").select("*, patients(name, email), dentists(name)").eq("dentist_id", dentistId).order("date", {
+                ascending: false
+            });
+            if (error) {
+                console.error("[v0] Supabase error fetching dentist appointments:", error);
+                throw new Error(`Failed to fetch dentist appointments: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.getByDentistId():", errorMsg);
+            throw err;
+        }
     },
     async create (appointment) {
-        const { data, error } = await getSupabase().from("appointments").insert([
-            appointment
-        ]).select("*, patients(name), dentists(name)").single();
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("appointments").insert([
+                appointment
+            ]).select("*, patients(name), dentists(name)").single();
+            if (error) {
+                console.error("[v0] Supabase error creating appointment:", error);
+                throw new Error(`Failed to create appointment: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.create():", errorMsg);
+            throw err;
+        }
     },
     async update (id, updates) {
-        const { data, error } = await getSupabase().from("appointments").update({
-            ...updates,
-            updated_at: new Date()
-        }).eq("id", id).select("*, patients(name), dentists(name)").single();
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("appointments").update({
+                ...updates,
+                updated_at: new Date()
+            }).eq("id", id).select("*, patients(name), dentists(name)").single();
+            if (error) {
+                console.error("[v0] Supabase error updating appointment:", error);
+                throw new Error(`Failed to update appointment: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.update():", errorMsg);
+            throw err;
+        }
     },
     async delete (id) {
-        const { error } = await getSupabase().from("appointments").delete().eq("id", id);
-        if (error) throw error;
+        try {
+            const { error } = await getSupabase().from("appointments").delete().eq("id", id);
+            if (error) {
+                console.error("[v0] Supabase error deleting appointment:", error);
+                throw new Error(`Failed to delete appointment: ${error.message}`);
+            }
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.delete():", errorMsg);
+            throw err;
+        }
     },
     async changeStatus (id, status) {
         return this.update(id, {

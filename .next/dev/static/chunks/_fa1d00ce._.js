@@ -577,6 +577,20 @@ const patientService = {
         if (error) throw error;
         return data;
     },
+    async getByName (name) {
+        try {
+            const { data, error } = await getSupabase().from("patients").select("*").ilike("name", name).maybeSingle();
+            if (error) {
+                console.error("[v0] Supabase error fetching patient by name:", error);
+                throw new Error(`Failed to fetch patient by name: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in patientService.getByName():", errorMsg);
+            throw err;
+        }
+    },
     async create (patient) {
         const { data, error } = await getSupabase().from("patients").insert([
             patient
@@ -602,44 +616,98 @@ const patientService = {
 };
 const appointmentService = {
     async getAll () {
-        const { data, error } = await getSupabase().from("appointments").select("*, patients(name, email), dentists(name)").order("date", {
-            ascending: false
-        });
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("appointments").select("*, patients(name, email), dentists(name)").order("date", {
+                ascending: false
+            });
+            if (error) {
+                console.error("[v0] Supabase error fetching all appointments:", error);
+                throw new Error(`Failed to fetch appointments: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.getAll():", errorMsg);
+            throw err;
+        }
     },
     async getByPatientId (patientId) {
-        const { data, error } = await getSupabase().from("appointments").select("*, patients(name), dentists(name)").eq("patient_id", patientId).order("date", {
-            ascending: false
-        });
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("appointments").select("*, patients(name), dentists(name)").eq("patient_id", patientId).order("date", {
+                ascending: false
+            });
+            if (error) {
+                console.error("[v0] Supabase error fetching patient appointments:", error);
+                throw new Error(`Failed to fetch patient appointments: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.getByPatientId():", errorMsg);
+            throw err;
+        }
     },
     async getByDentistId (dentistId) {
-        const { data, error } = await getSupabase().from("appointments").select("*, patients(name, email), dentists(name)").eq("dentist_id", dentistId).order("date", {
-            ascending: false
-        });
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("appointments").select("*, patients(name, email), dentists(name)").eq("dentist_id", dentistId).order("date", {
+                ascending: false
+            });
+            if (error) {
+                console.error("[v0] Supabase error fetching dentist appointments:", error);
+                throw new Error(`Failed to fetch dentist appointments: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.getByDentistId():", errorMsg);
+            throw err;
+        }
     },
     async create (appointment) {
-        const { data, error } = await getSupabase().from("appointments").insert([
-            appointment
-        ]).select("*, patients(name), dentists(name)").single();
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("appointments").insert([
+                appointment
+            ]).select("*, patients(name), dentists(name)").single();
+            if (error) {
+                console.error("[v0] Supabase error creating appointment:", error);
+                throw new Error(`Failed to create appointment: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.create():", errorMsg);
+            throw err;
+        }
     },
     async update (id, updates) {
-        const { data, error } = await getSupabase().from("appointments").update({
-            ...updates,
-            updated_at: new Date()
-        }).eq("id", id).select("*, patients(name), dentists(name)").single();
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("appointments").update({
+                ...updates,
+                updated_at: new Date()
+            }).eq("id", id).select("*, patients(name), dentists(name)").single();
+            if (error) {
+                console.error("[v0] Supabase error updating appointment:", error);
+                throw new Error(`Failed to update appointment: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.update():", errorMsg);
+            throw err;
+        }
     },
     async delete (id) {
-        const { error } = await getSupabase().from("appointments").delete().eq("id", id);
-        if (error) throw error;
+        try {
+            const { error } = await getSupabase().from("appointments").delete().eq("id", id);
+            if (error) {
+                console.error("[v0] Supabase error deleting appointment:", error);
+                throw new Error(`Failed to delete appointment: ${error.message}`);
+            }
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.delete():", errorMsg);
+            throw err;
+        }
     },
     async changeStatus (id, status) {
         return this.update(id, {
@@ -985,7 +1053,7 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
     };
     const handleSubmit = (e)=>{
         e.preventDefault();
-        if (formData.patient_id && formData.date && formData.time) {
+        if (formData.patient_id && formData.dentist_id && formData.date && formData.time) {
             const submitData = {
                 patient_id: formData.patient_id,
                 dentist_id: formData.dentist_id,
@@ -995,8 +1063,10 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
                 notes: formData.notes,
                 status: "pending"
             };
-            console.log("[v0] Submitting appointment data:", submitData, "dentist_id type:", typeof submitData.dentist_id, "dentist_id value:", submitData.dentist_id);
+            console.log("[v0] Submitting appointment to dentist:", formData.dentist_name, "with data:", submitData);
             onSubmit(submitData);
+        } else {
+            setError("Please fill in all required fields including selecting a dentist");
         }
     };
     // Generate available time slots
@@ -1022,7 +1092,7 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
                             children: "Schedule Appointment"
                         }, void 0, false, {
                             fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                            lineNumber: 111,
+                            lineNumber: 113,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1032,18 +1102,18 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
                                 className: "w-5 h-5"
                             }, void 0, false, {
                                 fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                lineNumber: 113,
+                                lineNumber: 115,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                            lineNumber: 112,
+                            lineNumber: 114,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                    lineNumber: 110,
+                    lineNumber: 112,
                     columnNumber: 9
                 }, this),
                 error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1051,7 +1121,7 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
                     children: error
                 }, void 0, false, {
                     fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                    lineNumber: 119,
+                    lineNumber: 121,
                     columnNumber: 11
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
@@ -1066,7 +1136,7 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
                                     children: "Patient *"
                                 }, void 0, false, {
                                     fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                    lineNumber: 127,
+                                    lineNumber: 129,
                                     columnNumber: 13
                                 }, this),
                                 loading ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1074,7 +1144,7 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
                                     children: "Loading patients..."
                                 }, void 0, false, {
                                     fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                    lineNumber: 129,
+                                    lineNumber: 131,
                                     columnNumber: 15
                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
                                     name: "patient_id",
@@ -1088,7 +1158,7 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
                                             children: "Select patient..."
                                         }, void 0, false, {
                                             fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                            lineNumber: 138,
+                                            lineNumber: 140,
                                             columnNumber: 17
                                         }, this),
                                         patients.map((p)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -1096,19 +1166,19 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
                                                 children: p.name
                                             }, p.id, false, {
                                                 fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                                lineNumber: 140,
+                                                lineNumber: 142,
                                                 columnNumber: 19
                                             }, this))
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                    lineNumber: 131,
+                                    lineNumber: 133,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                            lineNumber: 126,
+                            lineNumber: 128,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1116,10 +1186,20 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
                             children: [
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("label", {
                                     className: "text-sm font-medium text-foreground",
-                                    children: "Dentist (Optional)"
-                                }, void 0, false, {
+                                    children: [
+                                        "Dentist ",
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                            className: "text-destructive",
+                                            children: "*"
+                                        }, void 0, false, {
+                                            fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
+                                            lineNumber: 151,
+                                            columnNumber: 76
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
                                     fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                    lineNumber: 149,
+                                    lineNumber: 151,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
@@ -1127,13 +1207,14 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
                                     value: formData.dentist_id || "",
                                     onChange: handleDoctorChange,
                                     className: "w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground",
+                                    required: true,
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
                                             value: "",
-                                            children: "Unassigned"
+                                            children: "Select dentist..."
                                         }, void 0, false, {
                                             fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                            lineNumber: 156,
+                                            lineNumber: 159,
                                             columnNumber: 15
                                         }, this),
                                         dentists.map((d)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -1141,19 +1222,27 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
                                                 children: d.name
                                             }, d.id, false, {
                                                 fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                                lineNumber: 158,
+                                                lineNumber: 161,
                                                 columnNumber: 17
                                             }, this))
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                    lineNumber: 150,
+                                    lineNumber: 152,
+                                    columnNumber: 13
+                                }, this),
+                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                    className: "text-xs text-muted-foreground",
+                                    children: "The selected dentist will be notified to approve this appointment"
+                                }, void 0, false, {
+                                    fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
+                                    lineNumber: 166,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                            lineNumber: 148,
+                            lineNumber: 150,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1164,7 +1253,7 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
                                     children: "Service"
                                 }, void 0, false, {
                                     fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                    lineNumber: 166,
+                                    lineNumber: 170,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
@@ -1177,54 +1266,54 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
                                             children: "Cleaning"
                                         }, void 0, false, {
                                             fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                            lineNumber: 173,
+                                            lineNumber: 177,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
                                             children: "Check-up"
                                         }, void 0, false, {
                                             fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                            lineNumber: 174,
+                                            lineNumber: 178,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
                                             children: "Extraction"
                                         }, void 0, false, {
                                             fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                            lineNumber: 175,
+                                            lineNumber: 179,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
                                             children: "Filling"
                                         }, void 0, false, {
                                             fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                            lineNumber: 176,
+                                            lineNumber: 180,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
                                             children: "Root Canal"
                                         }, void 0, false, {
                                             fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                            lineNumber: 177,
+                                            lineNumber: 181,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
                                             children: "Whitening"
                                         }, void 0, false, {
                                             fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                            lineNumber: 178,
+                                            lineNumber: 182,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                    lineNumber: 167,
+                                    lineNumber: 171,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                            lineNumber: 165,
+                            lineNumber: 169,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1235,7 +1324,7 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
                                     children: "Date *"
                                 }, void 0, false, {
                                     fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                    lineNumber: 183,
+                                    lineNumber: 187,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
@@ -1247,13 +1336,13 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
                                     required: true
                                 }, void 0, false, {
                                     fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                    lineNumber: 184,
+                                    lineNumber: 188,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                            lineNumber: 182,
+                            lineNumber: 186,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1264,7 +1353,7 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
                                     children: "Time *"
                                 }, void 0, false, {
                                     fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                    lineNumber: 195,
+                                    lineNumber: 199,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("select", {
@@ -1279,7 +1368,7 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
                                             children: "Select time..."
                                         }, void 0, false, {
                                             fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                            lineNumber: 203,
+                                            lineNumber: 207,
                                             columnNumber: 15
                                         }, this),
                                         timeSlots.map((time)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("option", {
@@ -1287,19 +1376,19 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
                                                 children: time
                                             }, time, false, {
                                                 fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                                lineNumber: 205,
+                                                lineNumber: 209,
                                                 columnNumber: 17
                                             }, this))
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                    lineNumber: 196,
+                                    lineNumber: 200,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                            lineNumber: 194,
+                            lineNumber: 198,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1310,7 +1399,7 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
                                     children: "Notes (Optional)"
                                 }, void 0, false, {
                                     fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                    lineNumber: 213,
+                                    lineNumber: 217,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("textarea", {
@@ -1322,13 +1411,13 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
                                     rows: 3
                                 }, void 0, false, {
                                     fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                    lineNumber: 214,
+                                    lineNumber: 218,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                            lineNumber: 212,
+                            lineNumber: 216,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1342,7 +1431,7 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
                                     children: "Cancel"
                                 }, void 0, false, {
                                     fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                    lineNumber: 225,
+                                    lineNumber: 229,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -1352,30 +1441,30 @@ function ScheduleAppointmentModal({ onClose, onSubmit }) {
                                     children: "Schedule"
                                 }, void 0, false, {
                                     fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                                    lineNumber: 228,
+                                    lineNumber: 232,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                            lineNumber: 224,
+                            lineNumber: 228,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-                    lineNumber: 125,
+                    lineNumber: 127,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-            lineNumber: 108,
+            lineNumber: 110,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/modals/schedule-appointment-modal.tsx",
-        lineNumber: 107,
+        lineNumber: 109,
         columnNumber: 5
     }, this);
 }

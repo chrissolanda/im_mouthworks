@@ -73,6 +73,12 @@ export default function HRPatients() {
 
   const handleAddPatient = async (data: any) => {
     try {
+      // Check for duplicate patient name
+      const existingPatient = await patientService.getByName(data.name)
+      if (existingPatient) {
+        throw new Error(`Patient with name '${data.name}' already exists. Please use a different name.`)
+      }
+
       const newPatient = await patientService.create(data)
       if (newPatient) {
         setPatients([newPatient, ...patients])

@@ -155,6 +155,11 @@ function AuthProvider({ children }) {
             }
             // Import patientService dynamically to avoid circular imports
             const { patientService } = await __turbopack_context__.A("[project]/lib/db-service.ts [app-client] (ecmascript, async loader)");
+            // Check for duplicate patient name
+            const existingPatient = await patientService.getByName(name);
+            if (existingPatient) {
+                throw new Error(`Patient with name '${name}' already exists. Please use a different name.`);
+            }
             // Create patient record in database
             const newPatient = await patientService.create({
                 name: name,
@@ -194,7 +199,7 @@ function AuthProvider({ children }) {
         children: children
     }, void 0, false, {
         fileName: "[project]/lib/auth-context.tsx",
-        lineNumber: 177,
+        lineNumber: 183,
         columnNumber: 5
     }, this);
 }

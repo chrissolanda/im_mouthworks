@@ -1,4 +1,13 @@
-[00:00:00.705] Server  LOG      ✓ Ready in 446ms
-[00:00:03.289] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:03.381] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:03.457] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:00.713] Server  LOG      ✓ Ready in 453ms
+[00:00:03.242] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:03.243] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:03.308] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:40.019] Browser LOG     [v0] Submitting appointment to dentist: Dr. Emily Johnson with data: {"date":"2025-12-06","dentist_id":"63d250c7-d355-4eaa-b99e-d502b7db5dfb","notes":"","patient_id":"a5adc3d7-c921-4286-88d3-5cd29ddaa004","service":"Check-up","status":"pending","time":"10:00"}
+[00:01:09.446] Browser ERROR   [v0] Error saving patient profile: Patient with name 'KENT' already exists. Please use a different name.
+[00:01:09.446] Browser ERROR   [v0] Error in patient registration: {}
+[00:01:40.227] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:01:59.071] Browser ERROR   [v0] Error saving patient profile: Patient with name 'KENT' already exists. Please use a different name.
+[00:01:59.071] Browser ERROR   [v0] Error in patient registration: {}
+[00:02:53.001] Server  LOG      ✓ Compiled in 65ms
+[00:03:00.221] Server  LOG      ✓ Compiled in 113ms
+[00:03:13.511] Server  LOG      ✓ Compiled in 82ms

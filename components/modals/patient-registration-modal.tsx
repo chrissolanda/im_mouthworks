@@ -2,11 +2,20 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { X } from "lucide-react"
+import { X, Calendar, CheckCircle2 } from "lucide-react"
 
 interface PatientRegistrationModalProps {
   onSubmit: (name: string, phone?: string) => Promise<void>
   userEmail: string
+}
+
+interface Appointment {
+  id: string
+  date: string
+  time: string
+  service: string
+  status: string
+  dentists?: { name: string }
 }
 
 export default function PatientRegistrationModal({ onSubmit, userEmail }: PatientRegistrationModalProps) {
@@ -16,6 +25,7 @@ export default function PatientRegistrationModal({ onSubmit, userEmail }: Patien
   })
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [existingAppointments, setExistingAppointments] = useState<Appointment[] | null>(null)
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
@@ -25,6 +35,7 @@ export default function PatientRegistrationModal({ onSubmit, userEmail }: Patien
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    setExistingAppointments(null)
 
     if (!formData.name.trim()) {
       setError("Please enter your name")
@@ -33,6 +44,27 @@ export default function PatientRegistrationModal({ onSubmit, userEmail }: Patien
 
     try {
       setLoading(true)
+
+      // Check if patient with this name already exists
+      const { patientService, appointmentService } = await import("@/lib/db-service")
+      const existingPatient = await patientService.getByName(formData.name)
+
+      if (existingPatient) {
+        // Patient exists - fetch their appointments
+        const appointments = await appointmentService.getByPatientId(existingPatient.id)
+        
+        if (appointments && appointments.length > 0) {
+          // Show existing appointments
+          setExistingAppointments(appointments)
+          setError(null)
+          return
+        } else {
+          // Patient exists but no appointments - show error
+          throw new Error(`Patient with name '${formData.name}' already exists. Please use a different name.`)
+        }
+      }
+
+      // New patient - proceed with registration
       await onSubmit(formData.name, formData.phone)
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : "Failed to save profile"
@@ -45,65 +77,115 @@ export default function PatientRegistrationModal({ onSubmit, userEmail }: Patien
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-card rounded-lg shadow-2xl max-w-md w-full">
+      <div className="bg-card rounded-lg shadow-2xl max-w-md w-full max-h-96 overflow-y-auto">
         {/* Header */}
-        <div className="p-6 border-b border-border">
-          <h2 className="text-2xl font-bold text-foreground">Welcome to Mouthworks!</h2>
-          <p className="text-sm text-muted-foreground mt-1">Complete your profile to get started</p>
+        <div className="p-6 border-b border-border sticky top-0 bg-card">
+          <h2 className="text-2xl font-bold text-foreground">
+            {existingAppointments ? "Your Appointments" : "Welcome to Mouthworks!"}
+          </h2>
+          <p className="text-sm text-muted-foreground mt-1">
+            {existingAppointments
+              ? "Here are your scheduled appointments"
+              : "Complete your profile to get started"}
+          </p>
         </div>
 
         {/* Error Message */}
-        {error && <div className="p-4 bg-destructive/10 text-destructive text-sm">{error}</div>}
-
-        {/* Form */}
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Email</label>
-            <input
-              type="email"
-              value={userEmail}
-              disabled
-              className="w-full px-3 py-2 border border-border rounded-lg bg-muted text-foreground cursor-not-allowed"
-            />
+        {error && (
+          <div className="p-4 bg-destructive/10 text-destructive text-sm border-b border-border">
+            {error}
           </div>
+        )}
 
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">
-              Full Name <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              placeholder="Enter your full name"
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              required
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Phone (Optional)</label>
-            <input
-              type="tel"
-              name="phone"
-              value={formData.phone}
-              onChange={handleInputChange}
-              placeholder="+1 234-567-8900"
-              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-
-          <div className="pt-2">
+        {/* Existing Appointments Display */}
+        {existingAppointments && existingAppointments.length > 0 ? (
+          <div className="p-6 space-y-4">
+            {existingAppointments.map((apt) => (
+              <div
+                key={apt.id}
+                className="p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors"
+              >
+                <div className="flex items-start gap-3">
+                  <CheckCircle2 className="w-5 h-5 text-green-600 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="font-semibold text-foreground">{apt.service}</p>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      <Calendar className="inline w-4 h-4 mr-1" />
+                      {new Date(apt.date).toLocaleDateString()} at {apt.time}
+                    </p>
+                    {apt.dentists && (
+                      <p className="text-sm text-muted-foreground">
+                        Dr. {apt.dentists.name}
+                      </p>
+                    )}
+                    <p className="text-xs mt-2 px-2 py-1 bg-muted rounded-full inline-block">
+                      {apt.status.charAt(0).toUpperCase() + apt.status.slice(1)}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            ))}
             <Button
-              type="submit"
-              disabled={loading}
-              className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+              onClick={() => {
+                setExistingAppointments(null)
+                setFormData({ name: "", phone: "" })
+              }}
+              className="w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground"
             >
-              {loading ? "Saving..." : "Complete Profile"}
+              Back to Registration
             </Button>
           </div>
-        </form>
+        ) : (
+          /* Form */
+          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Email</label>
+              <input
+                type="email"
+                value={userEmail}
+                disabled
+                className="w-full px-3 py-2 border border-border rounded-lg bg-muted text-foreground cursor-not-allowed"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">
+                Full Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="name"
+                value={formData.name}
+                onChange={handleInputChange}
+                placeholder="Enter your full name"
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-foreground">Phone (Optional)</label>
+              <input
+                type="tel"
+                name="phone"
+                value={formData.phone}
+                onChange={handleInputChange}
+                placeholder="+1 234-567-8900"
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+
+            <div className="pt-2">
+              <Button
+                type="submit"
+                disabled={loading}
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
+              >
+                {loading ? "Checking..." : "Complete Profile"}
+              </Button>
+            </div>
+          </form>
+        )}
       </div>
     </div>
   )

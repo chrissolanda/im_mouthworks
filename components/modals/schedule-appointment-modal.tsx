@@ -85,18 +85,20 @@ export default function ScheduleAppointmentModal({ onClose, onSubmit }: Schedule
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (formData.patient_id && formData.date && formData.time) {
+    if (formData.patient_id && formData.dentist_id && formData.date && formData.time) {
       const submitData = {
         patient_id: formData.patient_id,
-        dentist_id: formData.dentist_id, // Already null if unassigned
+        dentist_id: formData.dentist_id,
         date: formData.date,
         time: formData.time,
         service: formData.service,
         notes: formData.notes,
         status: "pending",
       }
-      console.log("[v0] Submitting appointment data:", submitData, "dentist_id type:", typeof submitData.dentist_id, "dentist_id value:", submitData.dentist_id)
+      console.log("[v0] Submitting appointment to dentist:", formData.dentist_name, "with data:", submitData)
       onSubmit(submitData)
+    } else {
+      setError("Please fill in all required fields including selecting a dentist")
     }
   }
 
@@ -146,20 +148,22 @@ export default function ScheduleAppointmentModal({ onClose, onSubmit }: Schedule
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Dentist (Optional)</label>
+            <label className="text-sm font-medium text-foreground">Dentist <span className="text-destructive">*</span></label>
             <select
               name="dentist_id"
               value={formData.dentist_id || ""}
               onChange={handleDoctorChange}
               className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+              required
             >
-              <option value="">Unassigned</option>
+              <option value="">Select dentist...</option>
               {dentists.map((d) => (
                 <option key={d.id} value={d.id}>
                   {d.name}
                 </option>
               ))}
             </select>
+            <p className="text-xs text-muted-foreground">The selected dentist will be notified to approve this appointment</p>
           </div>
 
           <div className="space-y-2">

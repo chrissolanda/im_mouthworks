@@ -67,6 +67,25 @@ export const patientService = {
     return data
   },
 
+  async getByName(name: string) {
+    try {
+      const { data, error } = await getSupabase()
+        .from("patients")
+        .select("*")
+        .ilike("name", name)
+        .maybeSingle()
+      if (error) {
+        console.error("[v0] Supabase error fetching patient by name:", error)
+        throw new Error(`Failed to fetch patient by name: ${error.message}`)
+      }
+      return data
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : JSON.stringify(err)
+      console.error("[v0] Error in patientService.getByName():", errorMsg)
+      throw err
+    }
+  },
+
   async create(patient: {
     name: string
     email: string

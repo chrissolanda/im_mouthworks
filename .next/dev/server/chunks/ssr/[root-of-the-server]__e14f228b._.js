@@ -555,6 +555,20 @@ const patientService = {
         if (error) throw error;
         return data;
     },
+    async getByName (name) {
+        try {
+            const { data, error } = await getSupabase().from("patients").select("*").ilike("name", name).maybeSingle();
+            if (error) {
+                console.error("[v0] Supabase error fetching patient by name:", error);
+                throw new Error(`Failed to fetch patient by name: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in patientService.getByName():", errorMsg);
+            throw err;
+        }
+    },
     async create (patient) {
         const { data, error } = await getSupabase().from("patients").insert([
             patient
@@ -580,44 +594,98 @@ const patientService = {
 };
 const appointmentService = {
     async getAll () {
-        const { data, error } = await getSupabase().from("appointments").select("*, patients(name, email), dentists(name)").order("date", {
-            ascending: false
-        });
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("appointments").select("*, patients(name, email), dentists(name)").order("date", {
+                ascending: false
+            });
+            if (error) {
+                console.error("[v0] Supabase error fetching all appointments:", error);
+                throw new Error(`Failed to fetch appointments: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.getAll():", errorMsg);
+            throw err;
+        }
     },
     async getByPatientId (patientId) {
-        const { data, error } = await getSupabase().from("appointments").select("*, patients(name), dentists(name)").eq("patient_id", patientId).order("date", {
-            ascending: false
-        });
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("appointments").select("*, patients(name), dentists(name)").eq("patient_id", patientId).order("date", {
+                ascending: false
+            });
+            if (error) {
+                console.error("[v0] Supabase error fetching patient appointments:", error);
+                throw new Error(`Failed to fetch patient appointments: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.getByPatientId():", errorMsg);
+            throw err;
+        }
     },
     async getByDentistId (dentistId) {
-        const { data, error } = await getSupabase().from("appointments").select("*, patients(name, email), dentists(name)").eq("dentist_id", dentistId).order("date", {
-            ascending: false
-        });
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("appointments").select("*, patients(name, email), dentists(name)").eq("dentist_id", dentistId).order("date", {
+                ascending: false
+            });
+            if (error) {
+                console.error("[v0] Supabase error fetching dentist appointments:", error);
+                throw new Error(`Failed to fetch dentist appointments: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.getByDentistId():", errorMsg);
+            throw err;
+        }
     },
     async create (appointment) {
-        const { data, error } = await getSupabase().from("appointments").insert([
-            appointment
-        ]).select("*, patients(name), dentists(name)").single();
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("appointments").insert([
+                appointment
+            ]).select("*, patients(name), dentists(name)").single();
+            if (error) {
+                console.error("[v0] Supabase error creating appointment:", error);
+                throw new Error(`Failed to create appointment: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.create():", errorMsg);
+            throw err;
+        }
     },
     async update (id, updates) {
-        const { data, error } = await getSupabase().from("appointments").update({
-            ...updates,
-            updated_at: new Date()
-        }).eq("id", id).select("*, patients(name), dentists(name)").single();
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("appointments").update({
+                ...updates,
+                updated_at: new Date()
+            }).eq("id", id).select("*, patients(name), dentists(name)").single();
+            if (error) {
+                console.error("[v0] Supabase error updating appointment:", error);
+                throw new Error(`Failed to update appointment: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.update():", errorMsg);
+            throw err;
+        }
     },
     async delete (id) {
-        const { error } = await getSupabase().from("appointments").delete().eq("id", id);
-        if (error) throw error;
+        try {
+            const { error } = await getSupabase().from("appointments").delete().eq("id", id);
+            if (error) {
+                console.error("[v0] Supabase error deleting appointment:", error);
+                throw new Error(`Failed to delete appointment: ${error.message}`);
+            }
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.delete():", errorMsg);
+            throw err;
+        }
     },
     async changeStatus (id, status) {
         return this.update(id, {
@@ -1291,12 +1359,15 @@ function DentistSchedule() {
     const loadAppointments = async ()=>{
         try {
             setLoading(true);
-            const data = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2d$service$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["appointmentService"].getAll();
-            // Filter appointments for this dentist
-            const dentistAppointments = data?.filter((a)=>a.dentist_id === user?.id || a.dentists?.id === user?.id) || [];
-            setAppointments(dentistAppointments);
+            if (user?.id) {
+                // Fetch appointments specifically for this dentist
+                const data = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2d$service$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["appointmentService"].getByDentistId(user.id);
+                setAppointments(data || []);
+            }
         } catch (error) {
-            console.error("Error loading appointments:", error);
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            console.error("[v0] Error loading dentist appointments:", errorMsg);
+            setAppointments([]);
         } finally{
             setLoading(false);
         }
@@ -1308,7 +1379,7 @@ function DentistSchedule() {
                 className: "w-5 h-5"
             }, void 0, false, {
                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                lineNumber: 52,
+                lineNumber: 53,
                 columnNumber: 33
             }, this),
             href: "/dentist/dashboard"
@@ -1319,7 +1390,7 @@ function DentistSchedule() {
                 className: "w-5 h-5"
             }, void 0, false, {
                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                lineNumber: 53,
+                lineNumber: 54,
                 columnNumber: 35
             }, this),
             href: "/dentist/schedule"
@@ -1330,7 +1401,7 @@ function DentistSchedule() {
                 className: "w-5 h-5"
             }, void 0, false, {
                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                lineNumber: 54,
+                lineNumber: 55,
                 columnNumber: 34
             }, this),
             href: "/dentist/treatments"
@@ -1341,7 +1412,7 @@ function DentistSchedule() {
                 className: "w-5 h-5"
             }, void 0, false, {
                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                lineNumber: 55,
+                lineNumber: 56,
                 columnNumber: 31
             }, this),
             href: "/dentist/reports"
@@ -1425,22 +1496,213 @@ function DentistSchedule() {
                                 children: "Your Dental Schedule"
                             }, void 0, false, {
                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                lineNumber: 119,
+                                lineNumber: 120,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                 className: "text-muted-foreground",
-                                children: "View, approve, and manage your appointments"
+                                children: "Review pending appointments and manage your schedule"
                             }, void 0, false, {
                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                lineNumber: 120,
+                                lineNumber: 121,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/dentist/schedule/page.tsx",
-                        lineNumber: 118,
+                        lineNumber: 119,
                         columnNumber: 9
+                    }, this),
+                    pendingAppointments.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
+                        className: "border-yellow-300 bg-yellow-50/50",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardHeader"], {
+                                className: "pb-3",
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardTitle"], {
+                                        className: "flex items-center gap-2 text-yellow-900",
+                                        children: [
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$clock$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Clock$3e$__["Clock"], {
+                                                className: "w-5 h-5 text-yellow-600"
+                                            }, void 0, false, {
+                                                fileName: "[project]/app/dentist/schedule/page.tsx",
+                                                lineNumber: 129,
+                                                columnNumber: 17
+                                            }, this),
+                                            "Action Required: ",
+                                            pendingAppointments.length,
+                                            " Pending Approval",
+                                            pendingAppointments.length !== 1 ? "s" : ""
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/app/dentist/schedule/page.tsx",
+                                        lineNumber: 128,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardDescription"], {
+                                        className: "text-yellow-800",
+                                        children: "HR has scheduled these appointments for you. Please review and approve or reject them."
+                                    }, void 0, false, {
+                                        fileName: "[project]/app/dentist/schedule/page.tsx",
+                                        lineNumber: 132,
+                                        columnNumber: 15
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/app/dentist/schedule/page.tsx",
+                                lineNumber: 127,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
+                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "space-y-3",
+                                    children: pendingAppointments.map((apt)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "p-4 border-2 border-yellow-300 bg-white rounded-lg hover:bg-yellow-50/30 transition-colors",
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    className: "flex items-start justify-between mb-3",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                                    className: "font-semibold text-lg text-foreground",
+                                                                    children: apt.patients?.name || apt.patientName
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/app/dentist/schedule/page.tsx",
+                                                                    lineNumber: 145,
+                                                                    columnNumber: 25
+                                                                }, this),
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                                    className: "text-sm text-muted-foreground",
+                                                                    children: apt.service || "General Visit"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/app/dentist/schedule/page.tsx",
+                                                                    lineNumber: 146,
+                                                                    columnNumber: 25
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/app/dentist/schedule/page.tsx",
+                                                            lineNumber: 144,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                            className: "text-right",
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                                    className: "font-bold text-primary",
+                                                                    children: apt.date
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/app/dentist/schedule/page.tsx",
+                                                                    lineNumber: 149,
+                                                                    columnNumber: 25
+                                                                }, this),
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                                    className: "text-sm text-muted-foreground",
+                                                                    children: apt.time
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/app/dentist/schedule/page.tsx",
+                                                                    lineNumber: 150,
+                                                                    columnNumber: 25
+                                                                }, this)
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/app/dentist/schedule/page.tsx",
+                                                            lineNumber: 148,
+                                                            columnNumber: 23
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/app/dentist/schedule/page.tsx",
+                                                    lineNumber: 143,
+                                                    columnNumber: 21
+                                                }, this),
+                                                apt.notes && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    className: "text-sm text-muted-foreground mb-3 p-2 bg-muted/50 rounded",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
+                                                            className: "font-medium",
+                                                            children: "Notes:"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/app/dentist/schedule/page.tsx",
+                                                            lineNumber: 155,
+                                                            columnNumber: 25
+                                                        }, this),
+                                                        " ",
+                                                        apt.notes
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/app/dentist/schedule/page.tsx",
+                                                    lineNumber: 154,
+                                                    columnNumber: 23
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                                    className: "flex gap-2",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
+                                                            onClick: ()=>handleApproveAppointment(apt.id),
+                                                            className: "flex-1 bg-green-600 hover:bg-green-700 text-white font-medium",
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$circle$2d$check$2d$big$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__CheckCircle$3e$__["CheckCircle"], {
+                                                                    className: "w-4 h-4 mr-2"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/app/dentist/schedule/page.tsx",
+                                                                    lineNumber: 163,
+                                                                    columnNumber: 25
+                                                                }, this),
+                                                                "Approve"
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/app/dentist/schedule/page.tsx",
+                                                            lineNumber: 159,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
+                                                            onClick: ()=>handleViewDetails(apt),
+                                                            variant: "outline",
+                                                            className: "flex-1 text-destructive hover:bg-destructive/10 font-medium",
+                                                            children: [
+                                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$circle$2d$x$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__XCircle$3e$__["XCircle"], {
+                                                                    className: "w-4 h-4 mr-2"
+                                                                }, void 0, false, {
+                                                                    fileName: "[project]/app/dentist/schedule/page.tsx",
+                                                                    lineNumber: 171,
+                                                                    columnNumber: 25
+                                                                }, this),
+                                                                "Reject"
+                                                            ]
+                                                        }, void 0, true, {
+                                                            fileName: "[project]/app/dentist/schedule/page.tsx",
+                                                            lineNumber: 166,
+                                                            columnNumber: 23
+                                                        }, this)
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/app/dentist/schedule/page.tsx",
+                                                    lineNumber: 158,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, apt.id, true, {
+                                            fileName: "[project]/app/dentist/schedule/page.tsx",
+                                            lineNumber: 139,
+                                            columnNumber: 19
+                                        }, this))
+                                }, void 0, false, {
+                                    fileName: "[project]/app/dentist/schedule/page.tsx",
+                                    lineNumber: 137,
+                                    columnNumber: 15
+                                }, this)
+                            }, void 0, false, {
+                                fileName: "[project]/app/dentist/schedule/page.tsx",
+                                lineNumber: 136,
+                                columnNumber: 13
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/app/dentist/schedule/page.tsx",
+                        lineNumber: 126,
+                        columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
                         children: [
@@ -1453,20 +1715,20 @@ function DentistSchedule() {
                                                 children: "Daily Schedule"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                lineNumber: 127,
+                                                lineNumber: 186,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardDescription"], {
                                                 children: formatDate(selectedDate)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                lineNumber: 128,
+                                                lineNumber: 187,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dentist/schedule/page.tsx",
-                                        lineNumber: 126,
+                                        lineNumber: 185,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1479,12 +1741,12 @@ function DentistSchedule() {
                                                     className: "w-5 h-5"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                    lineNumber: 132,
+                                                    lineNumber: 191,
                                                     columnNumber: 17
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                lineNumber: 131,
+                                                lineNumber: 190,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1493,7 +1755,7 @@ function DentistSchedule() {
                                                 children: "Today"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                lineNumber: 134,
+                                                lineNumber: 193,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("button", {
@@ -1503,24 +1765,24 @@ function DentistSchedule() {
                                                     className: "w-5 h-5"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                    lineNumber: 141,
+                                                    lineNumber: 200,
                                                     columnNumber: 17
                                                 }, this)
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                lineNumber: 140,
+                                                lineNumber: 199,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dentist/schedule/page.tsx",
-                                        lineNumber: 130,
+                                        lineNumber: 189,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                lineNumber: 125,
+                                lineNumber: 184,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1531,12 +1793,12 @@ function DentistSchedule() {
                                         children: "No appointments scheduled for this date"
                                     }, void 0, false, {
                                         fileName: "[project]/app/dentist/schedule/page.tsx",
-                                        lineNumber: 148,
+                                        lineNumber: 207,
                                         columnNumber: 17
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                    lineNumber: 147,
+                                    lineNumber: 206,
                                     columnNumber: 15
                                 }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                     className: "space-y-3",
@@ -1551,10 +1813,10 @@ function DentistSchedule() {
                                                             children: [
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                                                                     className: "font-semibold text-foreground",
-                                                                    children: apt.patientName
+                                                                    children: apt.patients?.name || apt.patientName
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                                    lineNumber: 156,
+                                                                    lineNumber: 215,
                                                                     columnNumber: 25
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1562,13 +1824,13 @@ function DentistSchedule() {
                                                                     children: apt.service
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                                    lineNumber: 157,
+                                                                    lineNumber: 216,
                                                                     columnNumber: 25
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                            lineNumber: 155,
+                                                            lineNumber: 214,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -1576,13 +1838,13 @@ function DentistSchedule() {
                                                             children: apt.status.charAt(0).toUpperCase() + apt.status.slice(1)
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                            lineNumber: 159,
+                                                            lineNumber: 218,
                                                             columnNumber: 23
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                    lineNumber: 154,
+                                                    lineNumber: 213,
                                                     columnNumber: 21
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1595,14 +1857,14 @@ function DentistSchedule() {
                                                                     className: "w-4 h-4"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                                    lineNumber: 175,
+                                                                    lineNumber: 234,
                                                                     columnNumber: 25
                                                                 }, this),
                                                                 apt.time
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                            lineNumber: 174,
+                                                            lineNumber: 233,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1618,14 +1880,14 @@ function DentistSchedule() {
                                                                             className: "w-3 h-3 mr-1"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                                            lineNumber: 185,
+                                                                            lineNumber: 244,
                                                                             columnNumber: 27
                                                                         }, this),
                                                                         "Details"
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                                    lineNumber: 179,
+                                                                    lineNumber: 238,
                                                                     columnNumber: 25
                                                                 }, this),
                                                                 apt.status === "pending" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Fragment"], {
@@ -1639,14 +1901,14 @@ function DentistSchedule() {
                                                                                     className: "w-3 h-3 mr-1"
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                                                    lineNumber: 195,
+                                                                                    lineNumber: 254,
                                                                                     columnNumber: 31
                                                                                 }, this),
                                                                                 "Approve"
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                                            lineNumber: 190,
+                                                                            lineNumber: 249,
                                                                             columnNumber: 29
                                                                         }, this),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -1659,14 +1921,14 @@ function DentistSchedule() {
                                                                                     className: "w-3 h-3 mr-1"
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                                                    lineNumber: 204,
+                                                                                    lineNumber: 263,
                                                                                     columnNumber: 31
                                                                                 }, this),
                                                                                 "Reject"
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                                            lineNumber: 198,
+                                                                            lineNumber: 257,
                                                                             columnNumber: 29
                                                                         }, this)
                                                                     ]
@@ -1680,48 +1942,48 @@ function DentistSchedule() {
                                                                             className: "w-3 h-3 mr-1"
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                                            lineNumber: 215,
+                                                                            lineNumber: 274,
                                                                             columnNumber: 29
                                                                         }, this),
                                                                         "Complete"
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                                    lineNumber: 210,
+                                                                    lineNumber: 269,
                                                                     columnNumber: 27
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                            lineNumber: 178,
+                                                            lineNumber: 237,
                                                             columnNumber: 23
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                    lineNumber: 173,
+                                                    lineNumber: 232,
                                                     columnNumber: 21
                                                 }, this)
                                             ]
                                         }, apt.id, true, {
                                             fileName: "[project]/app/dentist/schedule/page.tsx",
-                                            lineNumber: 153,
+                                            lineNumber: 212,
                                             columnNumber: 19
                                         }, this))
                                 }, void 0, false, {
                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                    lineNumber: 151,
+                                    lineNumber: 210,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                lineNumber: 145,
+                                lineNumber: 204,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/dentist/schedule/page.tsx",
-                        lineNumber: 124,
+                        lineNumber: 183,
                         columnNumber: 9
                     }, this),
                     pendingAppointments.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
@@ -1735,7 +1997,7 @@ function DentistSchedule() {
                                                 className: "w-5 h-5 text-yellow-600"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                lineNumber: 233,
+                                                lineNumber: 292,
                                                 columnNumber: 17
                                             }, this),
                                             "Pending Approvals (",
@@ -1744,20 +2006,20 @@ function DentistSchedule() {
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dentist/schedule/page.tsx",
-                                        lineNumber: 232,
+                                        lineNumber: 291,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardDescription"], {
                                         children: "Appointments awaiting your decision"
                                     }, void 0, false, {
                                         fileName: "[project]/app/dentist/schedule/page.tsx",
-                                        lineNumber: 236,
+                                        lineNumber: 295,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                lineNumber: 231,
+                                lineNumber: 290,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1776,7 +2038,7 @@ function DentistSchedule() {
                                                                     children: apt.patientName
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                                    lineNumber: 244,
+                                                                    lineNumber: 303,
                                                                     columnNumber: 25
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1784,13 +2046,13 @@ function DentistSchedule() {
                                                                     children: apt.service
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                                    lineNumber: 245,
+                                                                    lineNumber: 304,
                                                                     columnNumber: 25
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                            lineNumber: 243,
+                                                            lineNumber: 302,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1802,13 +2064,13 @@ function DentistSchedule() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                            lineNumber: 247,
+                                                            lineNumber: 306,
                                                             columnNumber: 23
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                    lineNumber: 242,
+                                                    lineNumber: 301,
                                                     columnNumber: 21
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1822,14 +2084,14 @@ function DentistSchedule() {
                                                                     className: "w-4 h-4 mr-2"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                                    lineNumber: 256,
+                                                                    lineNumber: 315,
                                                                     columnNumber: 25
                                                                 }, this),
                                                                 "Approve"
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                            lineNumber: 252,
+                                                            lineNumber: 311,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -1841,42 +2103,42 @@ function DentistSchedule() {
                                                                     className: "w-4 h-4 mr-2"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                                    lineNumber: 264,
+                                                                    lineNumber: 323,
                                                                     columnNumber: 25
                                                                 }, this),
                                                                 "Reject"
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                            lineNumber: 259,
+                                                            lineNumber: 318,
                                                             columnNumber: 23
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                    lineNumber: 251,
+                                                    lineNumber: 310,
                                                     columnNumber: 21
                                                 }, this)
                                             ]
                                         }, apt.id, true, {
                                             fileName: "[project]/app/dentist/schedule/page.tsx",
-                                            lineNumber: 241,
+                                            lineNumber: 300,
                                             columnNumber: 19
                                         }, this))
                                 }, void 0, false, {
                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                    lineNumber: 239,
+                                    lineNumber: 298,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                lineNumber: 238,
+                                lineNumber: 297,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/dentist/schedule/page.tsx",
-                        lineNumber: 230,
+                        lineNumber: 289,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1892,12 +2154,12 @@ function DentistSchedule() {
                                             children: "Pending Approvals"
                                         }, void 0, false, {
                                             fileName: "[project]/app/dentist/schedule/page.tsx",
-                                            lineNumber: 279,
+                                            lineNumber: 338,
                                             columnNumber: 15
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/dentist/schedule/page.tsx",
-                                        lineNumber: 278,
+                                        lineNumber: 337,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1907,7 +2169,7 @@ function DentistSchedule() {
                                                 children: pendingAppointments.length
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                lineNumber: 282,
+                                                lineNumber: 341,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1915,19 +2177,19 @@ function DentistSchedule() {
                                                 children: "Awaiting your action"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                lineNumber: 283,
+                                                lineNumber: 342,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dentist/schedule/page.tsx",
-                                        lineNumber: 281,
+                                        lineNumber: 340,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                lineNumber: 277,
+                                lineNumber: 336,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
@@ -1940,12 +2202,12 @@ function DentistSchedule() {
                                             children: "Confirmed Today"
                                         }, void 0, false, {
                                             fileName: "[project]/app/dentist/schedule/page.tsx",
-                                            lineNumber: 289,
+                                            lineNumber: 348,
                                             columnNumber: 15
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/dentist/schedule/page.tsx",
-                                        lineNumber: 288,
+                                        lineNumber: 347,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1955,7 +2217,7 @@ function DentistSchedule() {
                                                 children: todayAppointments.filter((a)=>a.status === "confirmed").length
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                lineNumber: 292,
+                                                lineNumber: 351,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1963,19 +2225,19 @@ function DentistSchedule() {
                                                 children: "Scheduled for today"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                lineNumber: 295,
+                                                lineNumber: 354,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dentist/schedule/page.tsx",
-                                        lineNumber: 291,
+                                        lineNumber: 350,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                lineNumber: 287,
+                                lineNumber: 346,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
@@ -1988,12 +2250,12 @@ function DentistSchedule() {
                                             children: "This Week"
                                         }, void 0, false, {
                                             fileName: "[project]/app/dentist/schedule/page.tsx",
-                                            lineNumber: 301,
+                                            lineNumber: 360,
                                             columnNumber: 15
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/dentist/schedule/page.tsx",
-                                        lineNumber: 300,
+                                        lineNumber: 359,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -2003,7 +2265,7 @@ function DentistSchedule() {
                                                 children: appointments.length
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                lineNumber: 304,
+                                                lineNumber: 363,
                                                 columnNumber: 15
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2011,25 +2273,25 @@ function DentistSchedule() {
                                                 children: "Total appointments"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                lineNumber: 305,
+                                                lineNumber: 364,
                                                 columnNumber: 15
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/app/dentist/schedule/page.tsx",
-                                        lineNumber: 303,
+                                        lineNumber: 362,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                lineNumber: 299,
+                                lineNumber: 358,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/dentist/schedule/page.tsx",
-                        lineNumber: 276,
+                        lineNumber: 335,
                         columnNumber: 9
                     }, this),
                     confirmedAppointments.length > 0 && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Card"], {
@@ -2042,7 +2304,7 @@ function DentistSchedule() {
                                             className: "w-5 h-5 text-green-600"
                                         }, void 0, false, {
                                             fileName: "[project]/app/dentist/schedule/page.tsx",
-                                            lineNumber: 315,
+                                            lineNumber: 374,
                                             columnNumber: 17
                                         }, this),
                                         "Confirmed Appointments (",
@@ -2051,12 +2313,12 @@ function DentistSchedule() {
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                    lineNumber: 314,
+                                    lineNumber: 373,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                lineNumber: 313,
+                                lineNumber: 372,
                                 columnNumber: 13
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -2072,7 +2334,7 @@ function DentistSchedule() {
                                                             children: apt.patientName
                                                         }, void 0, false, {
                                                             fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                            lineNumber: 327,
+                                                            lineNumber: 386,
                                                             columnNumber: 23
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -2086,13 +2348,13 @@ function DentistSchedule() {
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                            lineNumber: 328,
+                                                            lineNumber: 387,
                                                             columnNumber: 23
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                    lineNumber: 326,
+                                                    lineNumber: 385,
                                                     columnNumber: 21
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
@@ -2102,35 +2364,35 @@ function DentistSchedule() {
                                                     children: "Complete"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                                    lineNumber: 332,
+                                                    lineNumber: 391,
                                                     columnNumber: 21
                                                 }, this)
                                             ]
                                         }, apt.id, true, {
                                             fileName: "[project]/app/dentist/schedule/page.tsx",
-                                            lineNumber: 322,
+                                            lineNumber: 381,
                                             columnNumber: 19
                                         }, this))
                                 }, void 0, false, {
                                     fileName: "[project]/app/dentist/schedule/page.tsx",
-                                    lineNumber: 320,
+                                    lineNumber: 379,
                                     columnNumber: 15
                                 }, this)
                             }, void 0, false, {
                                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                                lineNumber: 319,
+                                lineNumber: 378,
                                 columnNumber: 13
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/dentist/schedule/page.tsx",
-                        lineNumber: 312,
+                        lineNumber: 371,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                lineNumber: 116,
+                lineNumber: 117,
                 columnNumber: 7
             }, this),
             showApprovalModal && selectedAppointment && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$modals$2f$appointment$2d$approval$2d$modal$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["default"], {
@@ -2146,13 +2408,13 @@ function DentistSchedule() {
                 }
             }, void 0, false, {
                 fileName: "[project]/app/dentist/schedule/page.tsx",
-                lineNumber: 348,
+                lineNumber: 407,
                 columnNumber: 9
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/dentist/schedule/page.tsx",
-        lineNumber: 115,
+        lineNumber: 116,
         columnNumber: 5
     }, this);
 }

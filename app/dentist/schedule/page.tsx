@@ -35,14 +35,15 @@ export default function DentistSchedule() {
   const loadAppointments = async () => {
     try {
       setLoading(true)
-      const data = await appointmentService.getAll()
-      // Filter appointments for this dentist
-      const dentistAppointments = data?.filter(
-        (a: any) => a.dentist_id === user?.id || a.dentists?.id === user?.id
-      ) || []
-      setAppointments(dentistAppointments)
+      if (user?.id) {
+        // Fetch appointments specifically for this dentist
+        const data = await appointmentService.getByDentistId(user.id)
+        setAppointments(data || [])
+      }
     } catch (error) {
-      console.error("Error loading appointments:", error)
+      const errorMsg = error instanceof Error ? error.message : String(error)
+      console.error("[v0] Error loading dentist appointments:", errorMsg)
+      setAppointments([])
     } finally {
       setLoading(false)
     }
@@ -117,8 +118,66 @@ export default function DentistSchedule() {
         {/* Header */}
         <div>
           <h2 className="text-2xl font-bold text-foreground">Your Dental Schedule</h2>
-          <p className="text-muted-foreground">View, approve, and manage your appointments</p>
+          <p className="text-muted-foreground">Review pending appointments and manage your schedule</p>
         </div>
+
+        {/* PENDING APPROVALS - HIGHLIGHTED AT TOP */}
+        {pendingAppointments.length > 0 && (
+          <Card className="border-yellow-300 bg-yellow-50/50">
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-yellow-900">
+                <Clock className="w-5 h-5 text-yellow-600" />
+                Action Required: {pendingAppointments.length} Pending Approval{pendingAppointments.length !== 1 ? "s" : ""}
+              </CardTitle>
+              <CardDescription className="text-yellow-800">
+                HR has scheduled these appointments for you. Please review and approve or reject them.
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {pendingAppointments.map((apt) => (
+                  <div
+                    key={apt.id}
+                    className="p-4 border-2 border-yellow-300 bg-white rounded-lg hover:bg-yellow-50/30 transition-colors"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div>
+                        <p className="font-semibold text-lg text-foreground">{apt.patients?.name || apt.patientName}</p>
+                        <p className="text-sm text-muted-foreground">{apt.service || "General Visit"}</p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-primary">{apt.date}</p>
+                        <p className="text-sm text-muted-foreground">{apt.time}</p>
+                      </div>
+                    </div>
+                    {apt.notes && (
+                      <p className="text-sm text-muted-foreground mb-3 p-2 bg-muted/50 rounded">
+                        <span className="font-medium">Notes:</span> {apt.notes}
+                      </p>
+                    )}
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => handleApproveAppointment(apt.id)}
+                        className="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium"
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Approve
+                      </Button>
+                      <Button
+                        onClick={() => handleViewDetails(apt)}
+                        variant="outline"
+                        className="flex-1 text-destructive hover:bg-destructive/10 font-medium"
+                      >
+                        <XCircle className="w-4 h-4 mr-2" />
+                        Reject
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Date Navigation */}
         <Card>
@@ -153,7 +212,7 @@ export default function DentistSchedule() {
                   <div key={apt.id} className="p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex-1">
-                        <p className="font-semibold text-foreground">{apt.patientName}</p>
+                        <p className="font-semibold text-foreground">{apt.patients?.name || apt.patientName}</p>
                         <p className="text-sm text-muted-foreground">{apt.service}</p>
                       </div>
                       <span

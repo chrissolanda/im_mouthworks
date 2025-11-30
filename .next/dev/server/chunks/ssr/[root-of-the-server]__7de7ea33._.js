@@ -555,6 +555,20 @@ const patientService = {
         if (error) throw error;
         return data;
     },
+    async getByName (name) {
+        try {
+            const { data, error } = await getSupabase().from("patients").select("*").ilike("name", name).maybeSingle();
+            if (error) {
+                console.error("[v0] Supabase error fetching patient by name:", error);
+                throw new Error(`Failed to fetch patient by name: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in patientService.getByName():", errorMsg);
+            throw err;
+        }
+    },
     async create (patient) {
         const { data, error } = await getSupabase().from("patients").insert([
             patient
@@ -941,7 +955,10 @@ __turbopack_context__.s([
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react-jsx-dev-runtime.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/next/dist/server/route-modules/app-page/vendored/ssr/react.js [app-ssr] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/ui/button.tsx [app-ssr] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$calendar$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Calendar$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/calendar.js [app-ssr] (ecmascript) <export default as Calendar>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$circle$2d$check$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__CheckCircle2$3e$__ = __turbopack_context__.i("[project]/node_modules/lucide-react/dist/esm/icons/circle-check.js [app-ssr] (ecmascript) <export default as CheckCircle2>");
 "use client";
+;
 ;
 ;
 ;
@@ -952,6 +969,7 @@ function PatientRegistrationModal({ onSubmit, userEmail }) {
     });
     const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     const [error, setError] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
+    const [existingAppointments, setExistingAppointments] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     const handleInputChange = (e)=>{
         const { name, value } = e.target;
         setFormData((prev)=>({
@@ -962,12 +980,30 @@ function PatientRegistrationModal({ onSubmit, userEmail }) {
     const handleSubmit = async (e)=>{
         e.preventDefault();
         setError(null);
+        setExistingAppointments(null);
         if (!formData.name.trim()) {
             setError("Please enter your name");
             return;
         }
         try {
             setLoading(true);
+            // Check if patient with this name already exists
+            const { patientService, appointmentService } = await __turbopack_context__.A("[project]/lib/db-service.ts [app-ssr] (ecmascript, async loader)");
+            const existingPatient = await patientService.getByName(formData.name);
+            if (existingPatient) {
+                // Patient exists - fetch their appointments
+                const appointments = await appointmentService.getByPatientId(existingPatient.id);
+                if (appointments && appointments.length > 0) {
+                    // Show existing appointments
+                    setExistingAppointments(appointments);
+                    setError(null);
+                    return;
+                } else {
+                    // Patient exists but no appointments - show error
+                    throw new Error(`Patient with name '${formData.name}' already exists. Please use a different name.`);
+                }
+            }
+            // New patient - proceed with registration
             await onSubmit(formData.name, formData.phone);
         } catch (err) {
             const errorMsg = err instanceof Error ? err.message : "Failed to save profile";
@@ -980,42 +1016,143 @@ function PatientRegistrationModal({ onSubmit, userEmail }) {
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4",
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-            className: "bg-card rounded-lg shadow-2xl max-w-md w-full",
+            className: "bg-card rounded-lg shadow-2xl max-w-md w-full max-h-96 overflow-y-auto",
             children: [
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "p-6 border-b border-border",
+                    className: "p-6 border-b border-border sticky top-0 bg-card",
                     children: [
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
                             className: "text-2xl font-bold text-foreground",
-                            children: "Welcome to Mouthworks!"
+                            children: existingAppointments ? "Your Appointments" : "Welcome to Mouthworks!"
                         }, void 0, false, {
                             fileName: "[project]/components/modals/patient-registration-modal.tsx",
-                            lineNumber: 51,
+                            lineNumber: 83,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
                             className: "text-sm text-muted-foreground mt-1",
-                            children: "Complete your profile to get started"
+                            children: existingAppointments ? "Here are your scheduled appointments" : "Complete your profile to get started"
                         }, void 0, false, {
                             fileName: "[project]/components/modals/patient-registration-modal.tsx",
-                            lineNumber: 52,
+                            lineNumber: 86,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/modals/patient-registration-modal.tsx",
-                    lineNumber: 50,
+                    lineNumber: 82,
                     columnNumber: 9
                 }, this),
                 error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
-                    className: "p-4 bg-destructive/10 text-destructive text-sm",
+                    className: "p-4 bg-destructive/10 text-destructive text-sm border-b border-border",
                     children: error
                 }, void 0, false, {
                     fileName: "[project]/components/modals/patient-registration-modal.tsx",
-                    lineNumber: 56,
-                    columnNumber: 19
+                    lineNumber: 95,
+                    columnNumber: 11
                 }, this),
-                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
+                existingAppointments && existingAppointments.length > 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                    className: "p-6 space-y-4",
+                    children: [
+                        existingAppointments.map((apt)=>/*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                className: "p-4 border border-border rounded-lg hover:bg-muted/50 transition-colors",
+                                children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                    className: "flex items-start gap-3",
+                                    children: [
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$circle$2d$check$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__CheckCircle2$3e$__["CheckCircle2"], {
+                                            className: "w-5 h-5 text-green-600 mt-0.5 flex-shrink-0"
+                                        }, void 0, false, {
+                                            fileName: "[project]/components/modals/patient-registration-modal.tsx",
+                                            lineNumber: 109,
+                                            columnNumber: 19
+                                        }, this),
+                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                            className: "flex-1 min-w-0",
+                                            children: [
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    className: "font-semibold text-foreground",
+                                                    children: apt.service
+                                                }, void 0, false, {
+                                                    fileName: "[project]/components/modals/patient-registration-modal.tsx",
+                                                    lineNumber: 111,
+                                                    columnNumber: 21
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    className: "text-sm text-muted-foreground mt-1",
+                                                    children: [
+                                                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$calendar$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__$3c$export__default__as__Calendar$3e$__["Calendar"], {
+                                                            className: "inline w-4 h-4 mr-1"
+                                                        }, void 0, false, {
+                                                            fileName: "[project]/components/modals/patient-registration-modal.tsx",
+                                                            lineNumber: 113,
+                                                            columnNumber: 23
+                                                        }, this),
+                                                        new Date(apt.date).toLocaleDateString(),
+                                                        " at ",
+                                                        apt.time
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/components/modals/patient-registration-modal.tsx",
+                                                    lineNumber: 112,
+                                                    columnNumber: 21
+                                                }, this),
+                                                apt.dentists && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    className: "text-sm text-muted-foreground",
+                                                    children: [
+                                                        "Dr. ",
+                                                        apt.dentists.name
+                                                    ]
+                                                }, void 0, true, {
+                                                    fileName: "[project]/components/modals/patient-registration-modal.tsx",
+                                                    lineNumber: 117,
+                                                    columnNumber: 23
+                                                }, this),
+                                                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                                    className: "text-xs mt-2 px-2 py-1 bg-muted rounded-full inline-block",
+                                                    children: apt.status.charAt(0).toUpperCase() + apt.status.slice(1)
+                                                }, void 0, false, {
+                                                    fileName: "[project]/components/modals/patient-registration-modal.tsx",
+                                                    lineNumber: 121,
+                                                    columnNumber: 21
+                                                }, this)
+                                            ]
+                                        }, void 0, true, {
+                                            fileName: "[project]/components/modals/patient-registration-modal.tsx",
+                                            lineNumber: 110,
+                                            columnNumber: 19
+                                        }, this)
+                                    ]
+                                }, void 0, true, {
+                                    fileName: "[project]/components/modals/patient-registration-modal.tsx",
+                                    lineNumber: 108,
+                                    columnNumber: 17
+                                }, this)
+                            }, apt.id, false, {
+                                fileName: "[project]/components/modals/patient-registration-modal.tsx",
+                                lineNumber: 104,
+                                columnNumber: 15
+                            }, this)),
+                        /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["Button"], {
+                            onClick: ()=>{
+                                setExistingAppointments(null);
+                                setFormData({
+                                    name: "",
+                                    phone: ""
+                                });
+                            },
+                            className: "w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground",
+                            children: "Back to Registration"
+                        }, void 0, false, {
+                            fileName: "[project]/components/modals/patient-registration-modal.tsx",
+                            lineNumber: 128,
+                            columnNumber: 13
+                        }, this)
+                    ]
+                }, void 0, true, {
+                    fileName: "[project]/components/modals/patient-registration-modal.tsx",
+                    lineNumber: 102,
+                    columnNumber: 11
+                }, this) : /* Form */ /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("form", {
                     onSubmit: handleSubmit,
                     className: "p-6 space-y-4",
                     children: [
@@ -1027,8 +1164,8 @@ function PatientRegistrationModal({ onSubmit, userEmail }) {
                                     children: "Email"
                                 }, void 0, false, {
                                     fileName: "[project]/components/modals/patient-registration-modal.tsx",
-                                    lineNumber: 61,
-                                    columnNumber: 13
+                                    lineNumber: 142,
+                                    columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
                                     type: "email",
@@ -1037,14 +1174,14 @@ function PatientRegistrationModal({ onSubmit, userEmail }) {
                                     className: "w-full px-3 py-2 border border-border rounded-lg bg-muted text-foreground cursor-not-allowed"
                                 }, void 0, false, {
                                     fileName: "[project]/components/modals/patient-registration-modal.tsx",
-                                    lineNumber: 62,
-                                    columnNumber: 13
+                                    lineNumber: 143,
+                                    columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/modals/patient-registration-modal.tsx",
-                            lineNumber: 60,
-                            columnNumber: 11
+                            lineNumber: 141,
+                            columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                             className: "space-y-2",
@@ -1058,14 +1195,14 @@ function PatientRegistrationModal({ onSubmit, userEmail }) {
                                             children: "*"
                                         }, void 0, false, {
                                             fileName: "[project]/components/modals/patient-registration-modal.tsx",
-                                            lineNumber: 72,
-                                            columnNumber: 25
+                                            lineNumber: 153,
+                                            columnNumber: 27
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/modals/patient-registration-modal.tsx",
-                                    lineNumber: 71,
-                                    columnNumber: 13
+                                    lineNumber: 152,
+                                    columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
                                     type: "text",
@@ -1077,14 +1214,14 @@ function PatientRegistrationModal({ onSubmit, userEmail }) {
                                     required: true
                                 }, void 0, false, {
                                     fileName: "[project]/components/modals/patient-registration-modal.tsx",
-                                    lineNumber: 74,
-                                    columnNumber: 13
+                                    lineNumber: 155,
+                                    columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/modals/patient-registration-modal.tsx",
-                            lineNumber: 70,
-                            columnNumber: 11
+                            lineNumber: 151,
+                            columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                             className: "space-y-2",
@@ -1094,8 +1231,8 @@ function PatientRegistrationModal({ onSubmit, userEmail }) {
                                     children: "Phone (Optional)"
                                 }, void 0, false, {
                                     fileName: "[project]/components/modals/patient-registration-modal.tsx",
-                                    lineNumber: 86,
-                                    columnNumber: 13
+                                    lineNumber: 167,
+                                    columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("input", {
                                     type: "tel",
@@ -1106,14 +1243,14 @@ function PatientRegistrationModal({ onSubmit, userEmail }) {
                                     className: "w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                                 }, void 0, false, {
                                     fileName: "[project]/components/modals/patient-registration-modal.tsx",
-                                    lineNumber: 87,
-                                    columnNumber: 13
+                                    lineNumber: 168,
+                                    columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/modals/patient-registration-modal.tsx",
-                            lineNumber: 85,
-                            columnNumber: 11
+                            lineNumber: 166,
+                            columnNumber: 13
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                             className: "pt-2",
@@ -1121,32 +1258,32 @@ function PatientRegistrationModal({ onSubmit, userEmail }) {
                                 type: "submit",
                                 disabled: loading,
                                 className: "w-full bg-primary hover:bg-primary/90 text-primary-foreground",
-                                children: loading ? "Saving..." : "Complete Profile"
+                                children: loading ? "Checking..." : "Complete Profile"
                             }, void 0, false, {
                                 fileName: "[project]/components/modals/patient-registration-modal.tsx",
-                                lineNumber: 98,
-                                columnNumber: 13
+                                lineNumber: 179,
+                                columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/components/modals/patient-registration-modal.tsx",
-                            lineNumber: 97,
-                            columnNumber: 11
+                            lineNumber: 178,
+                            columnNumber: 13
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/modals/patient-registration-modal.tsx",
-                    lineNumber: 59,
-                    columnNumber: 9
+                    lineNumber: 140,
+                    columnNumber: 11
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/components/modals/patient-registration-modal.tsx",
-            lineNumber: 48,
+            lineNumber: 80,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/modals/patient-registration-modal.tsx",
-        lineNumber: 47,
+        lineNumber: 79,
         columnNumber: 5
     }, this);
 }
