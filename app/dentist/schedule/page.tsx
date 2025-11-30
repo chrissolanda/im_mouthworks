@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { useAuth } from "@/lib/auth-context"
 import MainLayout from "@/components/layout/main-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -17,15 +17,36 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react"
-import { mockAppointments } from "@/components/data/mock-data"
+import { appointmentService } from "@/lib/db-service"
 import AppointmentApprovalModal from "@/components/modals/appointment-approval-modal"
 
 export default function DentistSchedule() {
   const { user } = useAuth()
-  const [appointments, setAppointments] = useState(mockAppointments)
+  const [appointments, setAppointments] = useState<any[]>([])
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [showApprovalModal, setShowApprovalModal] = useState(false)
   const [selectedAppointment, setSelectedAppointment] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadAppointments()
+  }, [user?.id])
+
+  const loadAppointments = async () => {
+    try {
+      setLoading(true)
+      const data = await appointmentService.getAll()
+      // Filter appointments for this dentist
+      const dentistAppointments = data?.filter(
+        (a: any) => a.dentist_id === user?.id || a.dentists?.id === user?.id
+      ) || []
+      setAppointments(dentistAppointments)
+    } catch (error) {
+      console.error("Error loading appointments:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const navItems = [
     { label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" />, href: "/dentist/dashboard" },
@@ -34,16 +55,33 @@ export default function DentistSchedule() {
     { label: "Reports", icon: <BarChart3 className="w-5 h-5" />, href: "/dentist/reports" },
   ]
 
-  const handleApproveAppointment = (id: string) => {
-    setAppointments(appointments.map((a) => (a.id === id ? { ...a, status: "confirmed" } : a)))
+  const handleApproveAppointment = async (id: string) => {
+    try {
+      await appointmentService.changeStatus(id, "confirmed")
+      setAppointments(appointments.map((a) => (a.id === id ? { ...a, status: "confirmed" } : a)))
+      setShowApprovalModal(false)
+    } catch (error) {
+      console.error("Error approving appointment:", error)
+    }
   }
 
-  const handleRejectAppointment = (id: string, reason: string) => {
-    setAppointments(appointments.map((a) => (a.id === id ? { ...a, status: "rejected", notes: reason } : a)))
+  const handleRejectAppointment = async (id: string, reason: string) => {
+    try {
+      await appointmentService.update(id, { status: "rejected", notes: reason })
+      setAppointments(appointments.map((a) => (a.id === id ? { ...a, status: "rejected", notes: reason } : a)))
+      setShowApprovalModal(false)
+    } catch (error) {
+      console.error("Error rejecting appointment:", error)
+    }
   }
 
-  const handleCompleteAppointment = (id: string) => {
-    setAppointments(appointments.map((a) => (a.id === id ? { ...a, status: "completed" } : a)))
+  const handleCompleteAppointment = async (id: string) => {
+    try {
+      await appointmentService.changeStatus(id, "completed")
+      setAppointments(appointments.map((a) => (a.id === id ? { ...a, status: "completed" } : a)))
+    } catch (error) {
+      console.error("Error completing appointment:", error)
+    }
   }
 
   const handleViewDetails = (appointment: any) => {
@@ -51,18 +89,15 @@ export default function DentistSchedule() {
     setShowApprovalModal(true)
   }
 
-  // Get appointments for the dentist
-  const dentistAppointments = appointments.filter((a) => a.doctorId === user?.id || a.doctorId === "2")
-
   // Group appointments by date
   const getDateAppointments = (date: Date) => {
     const dateStr = date.toISOString().split("T")[0]
-    return dentistAppointments.filter((a) => a.date === dateStr)
+    return appointments.filter((a) => a.date === dateStr)
   }
 
   const todayAppointments = getDateAppointments(selectedDate)
-  const pendingAppointments = dentistAppointments.filter((a) => a.status === "pending")
-  const confirmedAppointments = dentistAppointments.filter((a) => a.status === "confirmed")
+  const pendingAppointments = appointments.filter((a) => a.status === "pending")
+  const confirmedAppointments = appointments.filter((a) => a.status === "confirmed")
 
   const previousDay = () => {
     setSelectedDate(new Date(selectedDate.getTime() - 86400000))
@@ -266,7 +301,7 @@ export default function DentistSchedule() {
               <CardTitle className="text-sm font-medium text-muted-foreground">This Week</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-primary">{dentistAppointments.length}</div>
+              <div className="text-3xl font-bold text-primary">{appointments.length}</div>
               <p className="text-xs text-muted-foreground mt-1">Total appointments</p>
             </CardContent>
           </Card>

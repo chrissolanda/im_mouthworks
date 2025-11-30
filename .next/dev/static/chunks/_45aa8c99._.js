@@ -602,44 +602,98 @@ const patientService = {
 };
 const appointmentService = {
     async getAll () {
-        const { data, error } = await getSupabase().from("appointments").select("*, patients(name, email), dentists(name)").order("date", {
-            ascending: false
-        });
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("appointments").select("*, patients(name, email), dentists(name)").order("date", {
+                ascending: false
+            });
+            if (error) {
+                console.error("[v0] Supabase error fetching all appointments:", error);
+                throw new Error(`Failed to fetch appointments: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.getAll():", errorMsg);
+            throw err;
+        }
     },
     async getByPatientId (patientId) {
-        const { data, error } = await getSupabase().from("appointments").select("*, patients(name), dentists(name)").eq("patient_id", patientId).order("date", {
-            ascending: false
-        });
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("appointments").select("*, patients(name), dentists(name)").eq("patient_id", patientId).order("date", {
+                ascending: false
+            });
+            if (error) {
+                console.error("[v0] Supabase error fetching patient appointments:", error);
+                throw new Error(`Failed to fetch patient appointments: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.getByPatientId():", errorMsg);
+            throw err;
+        }
     },
     async getByDentistId (dentistId) {
-        const { data, error } = await getSupabase().from("appointments").select("*, patients(name, email), dentists(name)").eq("dentist_id", dentistId).order("date", {
-            ascending: false
-        });
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("appointments").select("*, patients(name, email), dentists(name)").eq("dentist_id", dentistId).order("date", {
+                ascending: false
+            });
+            if (error) {
+                console.error("[v0] Supabase error fetching dentist appointments:", error);
+                throw new Error(`Failed to fetch dentist appointments: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.getByDentistId():", errorMsg);
+            throw err;
+        }
     },
     async create (appointment) {
-        const { data, error } = await getSupabase().from("appointments").insert([
-            appointment
-        ]).select("*, patients(name), dentists(name)").single();
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("appointments").insert([
+                appointment
+            ]).select("*, patients(name), dentists(name)").single();
+            if (error) {
+                console.error("[v0] Supabase error creating appointment:", error);
+                throw new Error(`Failed to create appointment: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.create():", errorMsg);
+            throw err;
+        }
     },
     async update (id, updates) {
-        const { data, error } = await getSupabase().from("appointments").update({
-            ...updates,
-            updated_at: new Date()
-        }).eq("id", id).select("*, patients(name), dentists(name)").single();
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("appointments").update({
+                ...updates,
+                updated_at: new Date()
+            }).eq("id", id).select("*, patients(name), dentists(name)").single();
+            if (error) {
+                console.error("[v0] Supabase error updating appointment:", error);
+                throw new Error(`Failed to update appointment: ${error.message}`);
+            }
+            return data;
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.update():", errorMsg);
+            throw err;
+        }
     },
     async delete (id) {
-        const { error } = await getSupabase().from("appointments").delete().eq("id", id);
-        if (error) throw error;
+        try {
+            const { error } = await getSupabase().from("appointments").delete().eq("id", id);
+            if (error) {
+                console.error("[v0] Supabase error deleting appointment:", error);
+                throw new Error(`Failed to delete appointment: ${error.message}`);
+            }
+        } catch (err) {
+            const errorMsg = err instanceof Error ? err.message : JSON.stringify(err);
+            console.error("[v0] Error in appointmentService.delete():", errorMsg);
+            throw err;
+        }
     },
     async changeStatus (id, status) {
         return this.update(id, {
@@ -682,23 +736,46 @@ const treatmentService = {
 };
 const paymentService = {
     async getAll () {
-        const { data, error } = await getSupabase().from("payments").select("*, patients(name, email)").order("date", {
+        const { data, error } = await getSupabase().from("payments").select("*, patients(name, email), dentists(name)").order("date", {
             ascending: false
         });
         if (error) throw error;
         return data;
     },
     async getByPatientId (patientId) {
-        const { data, error } = await getSupabase().from("payments").select("*").eq("patient_id", patientId).order("date", {
-            ascending: false
-        });
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("payments").select("*, dentists(name)").eq("patient_id", patientId).order("date", {
+                ascending: false
+            });
+            if (error) {
+                console.warn("Error fetching patient payments:", error.message);
+                return [];
+            }
+            return data || [];
+        } catch (err) {
+            console.warn("Exception fetching patient payments:", err instanceof Error ? err.message : err);
+            return [];
+        }
+    },
+    async getByDentistId (dentistId) {
+        try {
+            const { data, error } = await getSupabase().from("payments").select("*, patients(name, email)").eq("dentist_id", dentistId).order("date", {
+                ascending: false
+            });
+            if (error) {
+                console.warn("Error fetching dentist payments:", error.message);
+                return [];
+            }
+            return data || [];
+        } catch (err) {
+            console.warn("Exception fetching dentist payments:", err instanceof Error ? err.message : err);
+            return [];
+        }
     },
     async create (payment) {
         const { data, error } = await getSupabase().from("payments").insert([
             payment
-        ]).select("*, patients(name)").single();
+        ]).select("*, patients(name), dentists(name)").single();
         if (error) throw error;
         return data;
     },
@@ -706,7 +783,7 @@ const paymentService = {
         const { data, error } = await getSupabase().from("payments").update({
             ...updates,
             updated_at: new Date()
-        }).eq("id", id).select().single();
+        }).eq("id", id).select("*, patients(name), dentists(name)").single();
         if (error) throw error;
         return data;
     },
@@ -715,24 +792,81 @@ const paymentService = {
         if (error) throw error;
     },
     async getPatientBalance (patientId) {
-        const { data, error } = await getSupabase().from("payments").select("amount, status").eq("patient_id", patientId);
-        if (error) throw error;
-        let totalBalance = 0;
-        let totalPaid = 0;
-        data?.forEach((payment)=>{
-            if (payment.status === "paid") {
-                totalPaid += payment.amount;
-            } else if (payment.status === "unpaid") {
-                totalBalance += payment.amount;
-            } else if (payment.status === "partial") {
-                totalBalance += payment.amount;
+        try {
+            const { data, error } = await getSupabase().from("payments").select("amount, status").eq("patient_id", patientId);
+            if (error) {
+                console.warn("Error fetching patient balance:", error.message);
+                return {
+                    totalBalance: 0,
+                    totalPaid: 0,
+                    total: 0
+                };
             }
-        });
-        return {
-            totalBalance,
-            totalPaid,
-            total: totalBalance + totalPaid
-        };
+            let totalBalance = 0;
+            let totalPaid = 0;
+            data?.forEach((payment)=>{
+                if (payment.status === "paid") {
+                    totalPaid += payment.amount;
+                } else if (payment.status === "unpaid") {
+                    totalBalance += payment.amount;
+                } else if (payment.status === "partial") {
+                    totalBalance += payment.amount;
+                }
+            });
+            return {
+                totalBalance,
+                totalPaid,
+                total: totalBalance + totalPaid
+            };
+        } catch (err) {
+            console.warn("Exception fetching patient balance:", err instanceof Error ? err.message : err);
+            return {
+                totalBalance: 0,
+                totalPaid: 0,
+                total: 0
+            };
+        }
+    },
+    async getDentistEarnings (dentistId) {
+        try {
+            const { data, error } = await getSupabase().from("payments").select("amount, status").eq("dentist_id", dentistId);
+            if (error) {
+                console.warn("Error fetching dentist earnings:", error.message);
+                return {
+                    totalEarned: 0,
+                    totalPending: 0,
+                    totalCompleted: 0,
+                    count: 0
+                };
+            }
+            let totalEarned = 0;
+            let totalPending = 0;
+            let totalCompleted = 0;
+            data?.forEach((payment)=>{
+                if (payment.status === "paid") {
+                    totalEarned += payment.amount;
+                    totalCompleted += 1;
+                } else if (payment.status === "unpaid") {
+                    totalPending += payment.amount;
+                } else if (payment.status === "partial") {
+                    totalEarned += payment.amount;
+                }
+            });
+            return {
+                totalEarned,
+                totalPending,
+                totalCompleted,
+                count: data?.length || 0
+            };
+        } catch (err) {
+            console.warn("Exception fetching dentist earnings:", err instanceof Error ? err.message : err);
+            return {
+                totalEarned: 0,
+                totalPending: 0,
+                totalCompleted: 0,
+                count: 0
+            };
+        }
     }
 };
 const inventoryService = {
@@ -873,31 +1007,48 @@ function HRDashboard() {
             const loadData = {
                 "HRDashboard.useEffect.loadData": async ()=>{
                     try {
-                        const patients = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2d$service$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["patientService"].getAll();
-                        const appointments = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2d$service$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["appointmentService"].getAll();
-                        const payments = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2d$service$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["paymentService"].getAll();
-                        const inventory = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2d$service$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["inventoryService"].getAll();
+                        const [patients, appointments, payments, inventory] = await Promise.all([
+                            __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2d$service$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["patientService"].getAll().catch({
+                                "HRDashboard.useEffect.loadData": ()=>[]
+                            }["HRDashboard.useEffect.loadData"]),
+                            __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2d$service$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["appointmentService"].getAll().catch({
+                                "HRDashboard.useEffect.loadData": ()=>[]
+                            }["HRDashboard.useEffect.loadData"]),
+                            __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2d$service$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["paymentService"].getAll().catch({
+                                "HRDashboard.useEffect.loadData": ()=>[]
+                            }["HRDashboard.useEffect.loadData"]),
+                            __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2d$service$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["inventoryService"].getAll().catch({
+                                "HRDashboard.useEffect.loadData": ()=>[]
+                            }["HRDashboard.useEffect.loadData"])
+                        ]);
                         const today = new Date().toISOString().split("T")[0];
-                        const todayAppointments = appointments.filter({
-                            "HRDashboard.useEffect.loadData.todayAppointments": (a)=>a.date === today
-                        }["HRDashboard.useEffect.loadData.todayAppointments"]);
-                        const pendingPayments = payments.filter({
-                            "HRDashboard.useEffect.loadData.pendingPayments": (p)=>p.status !== "paid"
-                        }["HRDashboard.useEffect.loadData.pendingPayments"]).reduce({
-                            "HRDashboard.useEffect.loadData.pendingPayments": (sum, p)=>sum + (p.amount || 0)
-                        }["HRDashboard.useEffect.loadData.pendingPayments"], 0);
-                        const lowStock = inventory.filter({
+                        const todayAppts = (appointments || []).filter({
+                            "HRDashboard.useEffect.loadData.todayAppts": (a)=>a.date === today
+                        }["HRDashboard.useEffect.loadData.todayAppts"]);
+                        const pendingPaymentsAmount = (payments || []).filter({
+                            "HRDashboard.useEffect.loadData.pendingPaymentsAmount": (p)=>p.status !== "paid"
+                        }["HRDashboard.useEffect.loadData.pendingPaymentsAmount"]).reduce({
+                            "HRDashboard.useEffect.loadData.pendingPaymentsAmount": (sum, p)=>sum + (p.amount || 0)
+                        }["HRDashboard.useEffect.loadData.pendingPaymentsAmount"], 0);
+                        const lowStockCount = (inventory || []).filter({
                             "HRDashboard.useEffect.loadData": (i)=>i.status === "low" || i.status === "critical"
                         }["HRDashboard.useEffect.loadData"]).length;
                         setStats({
-                            totalPatients: patients.length,
-                            todayAppointments: todayAppointments.length,
-                            pendingPayments,
-                            lowStockItems: lowStock
+                            totalPatients: patients?.length || 0,
+                            todayAppointments: todayAppts?.length || 0,
+                            pendingPayments: pendingPaymentsAmount || 0,
+                            lowStockItems: lowStockCount || 0
                         });
-                        setTodayAppointments(todayAppointments.slice(0, 4));
+                        setTodayAppointments((todayAppts || []).slice(0, 4));
                     } catch (error) {
-                        console.error("[v0] Error loading dashboard:", error);
+                        console.error("[v0] Error loading dashboard:", error instanceof Error ? error.message : error);
+                        setStats({
+                            totalPatients: 0,
+                            todayAppointments: 0,
+                            pendingPayments: 0,
+                            lowStockItems: 0
+                        });
+                        setTodayAppointments([]);
                     } finally{
                         setLoading(false);
                     }
@@ -913,7 +1064,7 @@ function HRDashboard() {
                 className: "w-5 h-5"
             }, void 0, false, {
                 fileName: "[project]/app/hr/dashboard/page.tsx",
-                lineNumber: 67,
+                lineNumber: 76,
                 columnNumber: 33
             }, this),
             href: "/hr/dashboard"
@@ -924,7 +1075,7 @@ function HRDashboard() {
                 className: "w-5 h-5"
             }, void 0, false, {
                 fileName: "[project]/app/hr/dashboard/page.tsx",
-                lineNumber: 68,
+                lineNumber: 77,
                 columnNumber: 32
             }, this),
             href: "/hr/patients"
@@ -935,7 +1086,7 @@ function HRDashboard() {
                 className: "w-5 h-5"
             }, void 0, false, {
                 fileName: "[project]/app/hr/dashboard/page.tsx",
-                lineNumber: 69,
+                lineNumber: 78,
                 columnNumber: 36
             }, this),
             href: "/hr/appointments"
@@ -946,7 +1097,7 @@ function HRDashboard() {
                 className: "w-5 h-5"
             }, void 0, false, {
                 fileName: "[project]/app/hr/dashboard/page.tsx",
-                lineNumber: 70,
+                lineNumber: 79,
                 columnNumber: 34
             }, this),
             href: "/hr/treatments"
@@ -957,7 +1108,7 @@ function HRDashboard() {
                 className: "w-5 h-5"
             }, void 0, false, {
                 fileName: "[project]/app/hr/dashboard/page.tsx",
-                lineNumber: 71,
+                lineNumber: 80,
                 columnNumber: 32
             }, this),
             href: "/hr/payments"
@@ -968,7 +1119,7 @@ function HRDashboard() {
                 className: "w-5 h-5"
             }, void 0, false, {
                 fileName: "[project]/app/hr/dashboard/page.tsx",
-                lineNumber: 72,
+                lineNumber: 81,
                 columnNumber: 33
             }, this),
             href: "/hr/inventory"
@@ -979,7 +1130,7 @@ function HRDashboard() {
                 className: "w-5 h-5"
             }, void 0, false, {
                 fileName: "[project]/app/hr/dashboard/page.tsx",
-                lineNumber: 73,
+                lineNumber: 82,
                 columnNumber: 31
             }, this),
             href: "/hr/reports"
@@ -990,7 +1141,7 @@ function HRDashboard() {
                 className: "w-5 h-5"
             }, void 0, false, {
                 fileName: "[project]/app/hr/dashboard/page.tsx",
-                lineNumber: 74,
+                lineNumber: 83,
                 columnNumber: 32
             }, this),
             href: "/hr/settings"
@@ -1013,7 +1164,7 @@ function HRDashboard() {
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                            lineNumber: 82,
+                            lineNumber: 91,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1021,13 +1172,13 @@ function HRDashboard() {
                             children: "Manage clinic operations and schedule appointments"
                         }, void 0, false, {
                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                            lineNumber: 83,
+                            lineNumber: 92,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/hr/dashboard/page.tsx",
-                    lineNumber: 81,
+                    lineNumber: 90,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1043,12 +1194,12 @@ function HRDashboard() {
                                         children: "Total Patients"
                                     }, void 0, false, {
                                         fileName: "[project]/app/hr/dashboard/page.tsx",
-                                        lineNumber: 90,
+                                        lineNumber: 99,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/hr/dashboard/page.tsx",
-                                    lineNumber: 89,
+                                    lineNumber: 98,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1058,7 +1209,7 @@ function HRDashboard() {
                                             children: stats.totalPatients
                                         }, void 0, false, {
                                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                                            lineNumber: 93,
+                                            lineNumber: 102,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1066,19 +1217,19 @@ function HRDashboard() {
                                             children: "Active patients"
                                         }, void 0, false, {
                                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                                            lineNumber: 94,
+                                            lineNumber: 103,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/hr/dashboard/page.tsx",
-                                    lineNumber: 92,
+                                    lineNumber: 101,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                            lineNumber: 88,
+                            lineNumber: 97,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -1091,12 +1242,12 @@ function HRDashboard() {
                                         children: "Today's Appointments"
                                     }, void 0, false, {
                                         fileName: "[project]/app/hr/dashboard/page.tsx",
-                                        lineNumber: 100,
+                                        lineNumber: 109,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/hr/dashboard/page.tsx",
-                                    lineNumber: 99,
+                                    lineNumber: 108,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1106,7 +1257,7 @@ function HRDashboard() {
                                             children: stats.todayAppointments
                                         }, void 0, false, {
                                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                                            lineNumber: 103,
+                                            lineNumber: 112,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1114,19 +1265,19 @@ function HRDashboard() {
                                             children: "Scheduled today"
                                         }, void 0, false, {
                                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                                            lineNumber: 104,
+                                            lineNumber: 113,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/hr/dashboard/page.tsx",
-                                    lineNumber: 102,
+                                    lineNumber: 111,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                            lineNumber: 98,
+                            lineNumber: 107,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -1139,12 +1290,12 @@ function HRDashboard() {
                                         children: "Pending Payments"
                                     }, void 0, false, {
                                         fileName: "[project]/app/hr/dashboard/page.tsx",
-                                        lineNumber: 110,
+                                        lineNumber: 119,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/hr/dashboard/page.tsx",
-                                    lineNumber: 109,
+                                    lineNumber: 118,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1157,7 +1308,7 @@ function HRDashboard() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                                            lineNumber: 113,
+                                            lineNumber: 122,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1165,19 +1316,19 @@ function HRDashboard() {
                                             children: "Unpaid invoices"
                                         }, void 0, false, {
                                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                                            lineNumber: 114,
+                                            lineNumber: 123,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/hr/dashboard/page.tsx",
-                                    lineNumber: 112,
+                                    lineNumber: 121,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                            lineNumber: 108,
+                            lineNumber: 117,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -1190,12 +1341,12 @@ function HRDashboard() {
                                         children: "Low Stock Items"
                                     }, void 0, false, {
                                         fileName: "[project]/app/hr/dashboard/page.tsx",
-                                        lineNumber: 120,
+                                        lineNumber: 129,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/hr/dashboard/page.tsx",
-                                    lineNumber: 119,
+                                    lineNumber: 128,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1205,7 +1356,7 @@ function HRDashboard() {
                                             children: stats.lowStockItems
                                         }, void 0, false, {
                                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                                            lineNumber: 123,
+                                            lineNumber: 132,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1213,25 +1364,25 @@ function HRDashboard() {
                                             children: "Need restocking"
                                         }, void 0, false, {
                                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                                            lineNumber: 124,
+                                            lineNumber: 133,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/hr/dashboard/page.tsx",
-                                    lineNumber: 122,
+                                    lineNumber: 131,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                            lineNumber: 118,
+                            lineNumber: 127,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/hr/dashboard/page.tsx",
-                    lineNumber: 87,
+                    lineNumber: 96,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1252,7 +1403,7 @@ function HRDashboard() {
                                                     className: "w-5 h-5 text-primary"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/hr/dashboard/page.tsx",
-                                                    lineNumber: 135,
+                                                    lineNumber: 144,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardTitle"], {
@@ -1260,18 +1411,18 @@ function HRDashboard() {
                                                     children: "New Appointment"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/hr/dashboard/page.tsx",
-                                                    lineNumber: 136,
+                                                    lineNumber: 145,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                                            lineNumber: 134,
+                                            lineNumber: 143,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/hr/dashboard/page.tsx",
-                                        lineNumber: 133,
+                                        lineNumber: 142,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1280,23 +1431,23 @@ function HRDashboard() {
                                             children: "Schedule appointment with dentist"
                                         }, void 0, false, {
                                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                                            lineNumber: 140,
+                                            lineNumber: 149,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/hr/dashboard/page.tsx",
-                                        lineNumber: 139,
+                                        lineNumber: 148,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/hr/dashboard/page.tsx",
-                                lineNumber: 132,
+                                lineNumber: 141,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                            lineNumber: 131,
+                            lineNumber: 140,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -1314,7 +1465,7 @@ function HRDashboard() {
                                                     className: "w-5 h-5 text-primary"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/hr/dashboard/page.tsx",
-                                                    lineNumber: 149,
+                                                    lineNumber: 158,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardTitle"], {
@@ -1322,18 +1473,18 @@ function HRDashboard() {
                                                     children: "New Patient"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/hr/dashboard/page.tsx",
-                                                    lineNumber: 150,
+                                                    lineNumber: 159,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                                            lineNumber: 148,
+                                            lineNumber: 157,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/hr/dashboard/page.tsx",
-                                        lineNumber: 147,
+                                        lineNumber: 156,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1342,23 +1493,23 @@ function HRDashboard() {
                                             children: "Register new patient in system"
                                         }, void 0, false, {
                                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                                            lineNumber: 154,
+                                            lineNumber: 163,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/hr/dashboard/page.tsx",
-                                        lineNumber: 153,
+                                        lineNumber: 162,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/hr/dashboard/page.tsx",
-                                lineNumber: 146,
+                                lineNumber: 155,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                            lineNumber: 145,
+                            lineNumber: 154,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -1376,7 +1527,7 @@ function HRDashboard() {
                                                     className: "w-5 h-5 text-primary"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/hr/dashboard/page.tsx",
-                                                    lineNumber: 163,
+                                                    lineNumber: 172,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardTitle"], {
@@ -1384,18 +1535,18 @@ function HRDashboard() {
                                                     children: "Record Payment"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/hr/dashboard/page.tsx",
-                                                    lineNumber: 164,
+                                                    lineNumber: 173,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                                            lineNumber: 162,
+                                            lineNumber: 171,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/hr/dashboard/page.tsx",
-                                        lineNumber: 161,
+                                        lineNumber: 170,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1404,29 +1555,29 @@ function HRDashboard() {
                                             children: "Log patient payment"
                                         }, void 0, false, {
                                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                                            lineNumber: 168,
+                                            lineNumber: 177,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/hr/dashboard/page.tsx",
-                                        lineNumber: 167,
+                                        lineNumber: 176,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/hr/dashboard/page.tsx",
-                                lineNumber: 160,
+                                lineNumber: 169,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                            lineNumber: 159,
+                            lineNumber: 168,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/hr/dashboard/page.tsx",
-                    lineNumber: 130,
+                    lineNumber: 139,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -1437,20 +1588,20 @@ function HRDashboard() {
                                     children: "Today's Appointments"
                                 }, void 0, false, {
                                     fileName: "[project]/app/hr/dashboard/page.tsx",
-                                    lineNumber: 177,
+                                    lineNumber: 186,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardDescription"], {
                                     children: "All appointments scheduled for today"
                                 }, void 0, false, {
                                     fileName: "[project]/app/hr/dashboard/page.tsx",
-                                    lineNumber: 178,
+                                    lineNumber: 187,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                            lineNumber: 176,
+                            lineNumber: 185,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1459,14 +1610,14 @@ function HRDashboard() {
                                 children: "Loading..."
                             }, void 0, false, {
                                 fileName: "[project]/app/hr/dashboard/page.tsx",
-                                lineNumber: 182,
+                                lineNumber: 191,
                                 columnNumber: 15
                             }, this) : todayAppointments.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "text-center py-4 text-muted-foreground",
                                 children: "No appointments today"
                             }, void 0, false, {
                                 fileName: "[project]/app/hr/dashboard/page.tsx",
-                                lineNumber: 184,
+                                lineNumber: 193,
                                 columnNumber: 15
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "space-y-3",
@@ -1480,7 +1631,7 @@ function HRDashboard() {
                                                         className: "w-2 h-2 rounded-full bg-primary"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/hr/dashboard/page.tsx",
-                                                        lineNumber: 193,
+                                                        lineNumber: 202,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1490,7 +1641,7 @@ function HRDashboard() {
                                                                 children: apt.patients?.name
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/hr/dashboard/page.tsx",
-                                                                lineNumber: 195,
+                                                                lineNumber: 204,
                                                                 columnNumber: 25
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1502,19 +1653,19 @@ function HRDashboard() {
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/app/hr/dashboard/page.tsx",
-                                                                lineNumber: 196,
+                                                                lineNumber: 205,
                                                                 columnNumber: 25
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/hr/dashboard/page.tsx",
-                                                        lineNumber: 194,
+                                                        lineNumber: 203,
                                                         columnNumber: 23
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/hr/dashboard/page.tsx",
-                                                lineNumber: 192,
+                                                lineNumber: 201,
                                                 columnNumber: 21
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1525,59 +1676,59 @@ function HRDashboard() {
                                                         children: apt.dentists?.name || "TBD"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/hr/dashboard/page.tsx",
-                                                        lineNumber: 202,
+                                                        lineNumber: 211,
                                                         columnNumber: 23
                                                     }, this),
                                                     apt.status === "confirmed" ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$circle$2d$check$2d$big$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__CheckCircle$3e$__["CheckCircle"], {
                                                         className: "w-4 h-4 text-green-600"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/hr/dashboard/page.tsx",
-                                                        lineNumber: 204,
+                                                        lineNumber: 213,
                                                         columnNumber: 25
                                                     }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$clock$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Clock$3e$__["Clock"], {
                                                         className: "w-4 h-4 text-yellow-600"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/hr/dashboard/page.tsx",
-                                                        lineNumber: 206,
+                                                        lineNumber: 215,
                                                         columnNumber: 25
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/hr/dashboard/page.tsx",
-                                                lineNumber: 201,
+                                                lineNumber: 210,
                                                 columnNumber: 21
                                             }, this)
                                         ]
                                     }, apt.id, true, {
                                         fileName: "[project]/app/hr/dashboard/page.tsx",
-                                        lineNumber: 188,
+                                        lineNumber: 197,
                                         columnNumber: 19
                                     }, this))
                             }, void 0, false, {
                                 fileName: "[project]/app/hr/dashboard/page.tsx",
-                                lineNumber: 186,
+                                lineNumber: 195,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/hr/dashboard/page.tsx",
-                            lineNumber: 180,
+                            lineNumber: 189,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/hr/dashboard/page.tsx",
-                    lineNumber: 175,
+                    lineNumber: 184,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/hr/dashboard/page.tsx",
-            lineNumber: 79,
+            lineNumber: 88,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/app/hr/dashboard/page.tsx",
-        lineNumber: 78,
+        lineNumber: 87,
         columnNumber: 5
     }, this);
 }

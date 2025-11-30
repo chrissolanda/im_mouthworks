@@ -45,6 +45,7 @@ const AuthContext = /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project
 function AuthProvider({ children }) {
     const [user, setUser] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(null);
     const [loading, setLoading] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(true);
+    const [showPatientRegistration, setShowPatientRegistration] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useState"])(false);
     (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["useEffect"])(()=>{
         const initializeAuth = async ()=>{
             try {
@@ -70,30 +71,69 @@ function AuthProvider({ children }) {
     const login = async (email, password)=>{
         const mockUsers = {
             "patient@example.com": {
-                id: "1",
+                id: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
                 email: "patient@example.com",
                 name: "John Patient",
                 role: "patient",
                 phone: "+1 234-567-8900"
             },
             "dentist@example.com": {
-                id: "2",
+                id: "7a8c5e19-d3f2-4b7a-8c6f-5e2d9a1b3c47",
                 email: "dentist@example.com",
                 name: "Dr. Sarah Dentist",
                 role: "dentist",
                 specialization: "General Dentistry"
             },
             "hr@example.com": {
-                id: "3",
+                id: "9b2d1f8a-6c3e-4d9a-8b5f-7e2c1a3d6b9e",
                 email: "hr@example.com",
                 name: "Admin HR",
                 role: "hr"
+            },
+            "sarah.smith@dental.com": {
+                id: "a2b6f9aa-c1db-4126-91ea-e68ce0764cf7",
+                email: "sarah.smith@dental.com",
+                name: "Dr. Sarah Smith",
+                role: "dentist",
+                specialization: "General Dentistry"
+            },
+            "john.doe@dental.com": {
+                id: "36bbff44-0df3-4926-a241-83e753324ffa",
+                email: "john.doe@dental.com",
+                name: "Dr. John Doe",
+                role: "dentist",
+                specialization: "Orthodontics"
+            },
+            "emily.johnson@dental.com": {
+                id: "63d250c7-d355-4eaa-b99e-d502b7db5dfb",
+                email: "emily.johnson@dental.com",
+                name: "Dr. Emily Johnson",
+                role: "dentist",
+                specialization: "Periodontics"
+            },
+            "michael.chen@dental.com": {
+                id: "eab4dac1-1534-4b6d-80d1-243273ee4773",
+                email: "michael.chen@dental.com",
+                name: "Dr. Michael Chen",
+                role: "dentist",
+                specialization: "Prosthodontics"
+            },
+            "lisa.anderson@dental.com": {
+                id: "8e87c140-0749-4fe1-9713-39b05df2f566",
+                email: "lisa.anderson@dental.com",
+                name: "Dr. Lisa Anderson",
+                role: "dentist",
+                specialization: "Endodontics"
             }
         };
         const mockUser = mockUsers[email];
         if (mockUser) {
             setUser(mockUser);
             localStorage.setItem("user", JSON.stringify(mockUser));
+            // Show registration modal for new patients
+            if (mockUser.role === "patient") {
+                setShowPatientRegistration(true);
+            }
         } else {
             throw new Error("Invalid credentials");
         }
@@ -104,18 +144,53 @@ function AuthProvider({ children }) {
         const supabase = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2d$client$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getSupabaseClient"])();
         supabase.auth.signOut();
     };
+    const savePatientProfile = async (name, phone)=>{
+        try {
+            if (!user || user.role !== "patient") {
+                throw new Error("Only patients can register");
+            }
+            // Import patientService dynamically to avoid circular imports
+            const { patientService } = await __turbopack_context__.A("[project]/lib/db-service.ts [app-ssr] (ecmascript, async loader)");
+            // Create patient record in database
+            const newPatient = await patientService.create({
+                name: name,
+                email: user.email,
+                phone: phone || null,
+                dob: null,
+                gender: null,
+                address: null
+            });
+            if (newPatient) {
+                // Update user state with the new patient ID if needed
+                const updatedUser = {
+                    ...user,
+                    name: name,
+                    phone: phone
+                };
+                setUser(updatedUser);
+                localStorage.setItem("user", JSON.stringify(updatedUser));
+                setShowPatientRegistration(false);
+            }
+        } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            console.error("[v0] Error saving patient profile:", errorMsg);
+            throw error;
+        }
+    };
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$server$2f$route$2d$modules$2f$app$2d$page$2f$vendored$2f$ssr$2f$react$2d$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["jsxDEV"])(AuthContext.Provider, {
         value: {
             user,
             loading,
             login,
             logout,
-            isAuthenticated: !!user
+            isAuthenticated: !!user,
+            showPatientRegistration,
+            savePatientProfile
         },
         children: children
     }, void 0, false, {
         fileName: "[project]/lib/auth-context.tsx",
-        lineNumber: 101,
+        lineNumber: 177,
         columnNumber: 5
     }, this);
 }

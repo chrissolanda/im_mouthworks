@@ -7,9 +7,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Calendar, CreditCard, LayoutDashboard, User } from "lucide-react"
 import Link from "next/link"
 import { appointmentService, paymentService } from "@/lib/db-service"
+import PatientRegistrationModal from "@/components/modals/patient-registration-modal"
 
 export default function PatientDashboard() {
-  const { user } = useAuth()
+  const { user, showPatientRegistration, savePatientProfile } = useAuth()
   const [stats, setStats] = useState({
     upcomingCount: 0,
     outstandingBalance: 0,
@@ -21,24 +22,56 @@ export default function PatientDashboard() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        if (!user?.id) return
+        if (!user?.id) {
+          setLoading(false)
+          return
+        }
 
-        const appointments = await appointmentService.getByPatientId(user.id)
-        const payments = await paymentService.getByPatientId(user.id)
+        let appointments = []
+        let payments = []
+
+        // Load appointments with detailed error handling
+        try {
+          const appointmentData = await appointmentService.getByPatientId(user.id)
+          appointments = appointmentData || []
+        } catch (err) {
+          const errorMsg = err instanceof Error ? err.message : JSON.stringify(err)
+          console.error("[v0] Error loading appointments:", errorMsg, err)
+          appointments = []
+        }
+
+        // Load payments with detailed error handling
+        try {
+          const paymentData = await paymentService.getByPatientId(user.id)
+          payments = paymentData || []
+        } catch (err) {
+          const errorMsg = err instanceof Error ? err.message : JSON.stringify(err)
+          console.error("[v0] Error loading payments:", errorMsg, err)
+          payments = []
+        }
 
         // Calculate stats
-        const upcoming = appointments.filter((a: any) => a.status !== "completed").length
-        const outstandingBalance = payments
-          .filter((p: any) => p.status !== "paid")
-          .reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
+        const upcoming = appointments?.filter((a: any) => a.status !== "completed")?.length || 0
+        const outstandingBalance =
+          payments
+            ?.filter((p: any) => p.status !== "paid")
+            ?.reduce((sum: number, p: any) => sum + (p.amount || 0), 0) || 0
 
-        const completed = appointments.filter((a: any) => a.status === "completed")
-        const lastVisit = completed.length > 0 ? new Date(completed[0].date).toLocaleDateString() : "No visits yet"
+        const completed = appointments?.filter((a: any) => a.status === "completed") || []
+        const lastVisit =
+          completed.length > 0 ? new Date(completed[0].date).toLocaleDateString() : "No visits yet"
 
         setStats({ upcomingCount: upcoming, outstandingBalance, lastVisit })
-        setRecentAppointments(appointments.slice(0, 3))
+        setRecentAppointments(appointments?.slice(0, 3) || [])
       } catch (error) {
-        console.error("[v0] Error loading dashboard:", error)
+        console.error("[v0] Error loading dashboard:", error instanceof Error ? error.message : error)
+        // Set defaults on error
+        setStats({
+          upcomingCount: 0,
+          outstandingBalance: 0,
+          lastVisit: "No visits yet",
+        })
+        setRecentAppointments([])
       } finally {
         setLoading(false)
       }
@@ -162,6 +195,10 @@ export default function PatientDashboard() {
           </CardContent>
         </Card>
       </div>
+
+      {showPatientRegistration && user && (
+        <PatientRegistrationModal userEmail={user.email} onSubmit={savePatientProfile} />
+      )}
     </MainLayout>
   )
 }

@@ -1,26 +1,4 @@
-[00:00:03.652] Server  LOG      ✓ Ready in 2.7s
-[00:00:06.676] Server  LOG      ○ Compiling / ...
-[00:00:21.291] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:41.752] Browser ERROR   [v0] Error scheduling appointment: {"code":"22P02","details":null,"hint":null,"message":"invalid input syntax for type uuid: \"dentist-1\""}
-[00:01:02.339] Server  LOG      ✓ Compiled in 197ms
-[00:01:30.663] Browser LOG     [v0] Submitting appointment data: {"date":"2025-11-07","dentist_id":"dentist-1","notes":"AAA","patient_id":"74a588fe-cdc9-43d1-856c-a48cdd4a32a7","service":"Extraction","status":"pending","time":"11:00"} dentist_id type: string dentist_id value: dentist-1
-[00:01:31.574] Browser ERROR   [v0] Error scheduling appointment: {"code":"22P02","details":null,"hint":null,"message":"invalid input syntax for type uuid: \"dentist-1\""}
-[00:02:28.094] Browser LOG     [v0] Submitting appointment data: {"date":"2025-11-07","dentist_id":"dentist-1","notes":"AAA","patient_id":"74a588fe-cdc9-43d1-856c-a48cdd4a32a7","service":"Extraction","status":"pending","time":"11:00"} dentist_id type: string dentist_id value: dentist-1
-[00:02:29.291] Browser LOG     [v0] Submitting appointment data: {"date":"2025-11-07","dentist_id":"dentist-1","notes":"AAA","patient_id":"74a588fe-cdc9-43d1-856c-a48cdd4a32a7","service":"Extraction","status":"pending","time":"11:00"} dentist_id type: string dentist_id value: dentist-1
-[00:02:29.292] Browser ERROR   [v0] Error scheduling appointment: {"code":"22P02","details":null,"hint":null,"message":"invalid input syntax for type uuid: \"dentist-1\""}
-[00:02:30.041] Browser ERROR   [v0] Error scheduling appointment: {"code":"22P02","details":null,"hint":null,"message":"invalid input syntax for type uuid: \"dentist-1\""}
-[00:02:30.246] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:02:31.052] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:02:31.180] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:02:41.560] Browser LOG     [v0] Submitting appointment data: {"date":"2025-11-14","dentist_id":"dentist-1","notes":"","patient_id":"74a588fe-cdc9-43d1-856c-a48cdd4a32a7","service":"Extraction","status":"pending","time":"10:00"} dentist_id type: string dentist_id value: dentist-1
-[00:02:42.276] Browser ERROR   [v0] Error scheduling appointment: {"code":"22P02","details":null,"hint":null,"message":"invalid input syntax for type uuid: \"dentist-1\""}
-[00:03:28.777] Server  LOG      ✓ Compiled in 55ms
-[00:03:42.238] Server  LOG      ✓ Compiled in 93ms
-[00:04:26.248] Server  LOG      ✓ Compiled in 50ms
-[01:06:19.136] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[01:39:38.669] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[01:39:50.470] Browser LOG     [v0] Submitting appointment data: {"date":"2025-12-06","dentist_id":"63d250c7-d355-4eaa-b99e-d502b7db5dfb","notes":"","patient_id":"74a588fe-cdc9-43d1-856c-a48cdd4a32a7","service":"Check-up","status":"pending","time":"10:00"} dentist_id type: string dentist_id value: 63d250c7-d355-4eaa-b99e-d502b7db5dfb
-[01:41:51.190] Server  LOG      ○ Compiling /hr/patients ...
-[01:41:56.264] Browser ERROR   [v0] Error loading dashboard: {"code":"22P02","details":null,"hint":null,"message":"invalid input syntax for type uuid: \"1\""}
-[01:41:56.393] Browser ERROR   [v0] Error loading dashboard: {"code":"22P02","details":null,"hint":null,"message":"invalid input syntax for type uuid: \"1\""}
-[02:08:29.111] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:00.705] Server  LOG      ✓ Ready in 446ms
+[00:00:03.289] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:03.381] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:00:03.457] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold

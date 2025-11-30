@@ -1,12 +1,10 @@
 "use client"
 
-import type React from "react"
-
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { X } from "lucide-react"
-import { patientService } from "@/lib/db-service"
+import { patientService, dentistService } from "@/lib/db-service"
 
 interface RecordPaymentModalProps {
   onClose: () => void
@@ -18,28 +16,36 @@ interface Patient {
   name: string
 }
 
+interface Dentist {
+  id: string
+  name: string
+}
+
 export default function RecordPaymentModal({ onClose, onSubmit }: RecordPaymentModalProps) {
   const [formData, setFormData] = useState({
     patient_id: "",
+    dentist_id: "",
     amount: "",
     method: "Cash",
     status: "paid",
     description: "",
   })
   const [patients, setPatients] = useState<Patient[]>([])
+  const [dentists, setDentists] = useState<Dentist[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadPatients()
+    loadData()
   }, [])
 
-  const loadPatients = async () => {
+  const loadData = async () => {
     try {
       setLoading(true)
-      const data = await patientService.getAll()
-      setPatients(data || [])
+      const [patientsData, dentistsData] = await Promise.all([patientService.getAll(), dentistService.getAll()])
+      setPatients(patientsData || [])
+      setDentists(dentistsData || [])
     } catch (error) {
-      console.error("Error loading patients:", error)
+      console.error("Error loading data:", error)
     } finally {
       setLoading(false)
     }
@@ -52,16 +58,17 @@ export default function RecordPaymentModal({ onClose, onSubmit }: RecordPaymentM
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (formData.patient_id && formData.amount && formData.description) {
+    if (formData.patient_id && formData.amount && formData.description && formData.dentist_id) {
       onSubmit({
         patient_id: formData.patient_id,
+        dentist_id: formData.dentist_id,
         amount: Number.parseFloat(formData.amount),
         method: formData.method,
         status: formData.status,
         description: formData.description,
         date: new Date().toISOString().split("T")[0],
       })
-      setFormData({ patient_id: "", amount: "", method: "Cash", status: "paid", description: "" })
+      setFormData({ patient_id: "", dentist_id: "", amount: "", method: "Cash", status: "paid", description: "" })
     }
   }
 
@@ -81,7 +88,7 @@ export default function RecordPaymentModal({ onClose, onSubmit }: RecordPaymentM
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Patient *</label>
             {loading ? (
-              <div className="text-sm text-muted-foreground">Loading patients...</div>
+              <div className="text-sm text-muted-foreground">Loading...</div>
             ) : (
               <select
                 name="patient_id"
@@ -94,6 +101,28 @@ export default function RecordPaymentModal({ onClose, onSubmit }: RecordPaymentM
                 {patients.map((p) => (
                   <option key={p.id} value={p.id}>
                     {p.name}
+                  </option>
+                ))}
+              </select>
+            )}
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Dentist *</label>
+            {loading ? (
+              <div className="text-sm text-muted-foreground">Loading...</div>
+            ) : (
+              <select
+                name="dentist_id"
+                value={formData.dentist_id}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+                required
+              >
+                <option value="">Select dentist...</option>
+                {dentists.map((d) => (
+                  <option key={d.id} value={d.id}>
+                    {d.name}
                   </option>
                 ))}
               </select>
@@ -161,7 +190,11 @@ export default function RecordPaymentModal({ onClose, onSubmit }: RecordPaymentM
             <Button type="button" onClick={onClose} variant="outline" className="flex-1 bg-transparent">
               Cancel
             </Button>
-            <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground" disabled={loading}>
+            <Button
+              type="submit"
+              className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
+              disabled={loading}
+            >
               Record Payment
             </Button>
           </div>

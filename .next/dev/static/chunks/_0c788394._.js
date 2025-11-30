@@ -304,6 +304,26 @@ function LoginScreen() {
         {
             email: "hr@example.com",
             role: "HR/Admin"
+        },
+        {
+            email: "sarah.smith@dental.com",
+            role: "Dentist"
+        },
+        {
+            email: "john.doe@dental.com",
+            role: "Dentist"
+        },
+        {
+            email: "emily.johnson@dental.com",
+            role: "Dentist"
+        },
+        {
+            email: "michael.chen@dental.com",
+            role: "Dentist"
+        },
+        {
+            email: "lisa.anderson@dental.com",
+            role: "Dentist"
         }
     ];
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -323,12 +343,12 @@ function LoginScreen() {
                                         className: "w-6 h-6 text-primary-foreground"
                                     }, void 0, false, {
                                         fileName: "[project]/components/auth/login-screen.tsx",
-                                        lineNumber: 60,
+                                        lineNumber: 65,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/components/auth/login-screen.tsx",
-                                    lineNumber: 59,
+                                    lineNumber: 64,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h1", {
@@ -336,13 +356,13 @@ function LoginScreen() {
                                     children: "Mouthworks"
                                 }, void 0, false, {
                                     fileName: "[project]/components/auth/login-screen.tsx",
-                                    lineNumber: 62,
+                                    lineNumber: 67,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/auth/login-screen.tsx",
-                            lineNumber: 58,
+                            lineNumber: 63,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -350,13 +370,13 @@ function LoginScreen() {
                             children: "Dental Clinic Management System"
                         }, void 0, false, {
                             fileName: "[project]/components/auth/login-screen.tsx",
-                            lineNumber: 64,
+                            lineNumber: 69,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/auth/login-screen.tsx",
-                    lineNumber: 57,
+                    lineNumber: 62,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -369,20 +389,20 @@ function LoginScreen() {
                                     children: "Welcome Back"
                                 }, void 0, false, {
                                     fileName: "[project]/components/auth/login-screen.tsx",
-                                    lineNumber: 70,
+                                    lineNumber: 75,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardDescription"], {
                                     children: "Sign in to your account"
                                 }, void 0, false, {
                                     fileName: "[project]/components/auth/login-screen.tsx",
-                                    lineNumber: 71,
+                                    lineNumber: 76,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/auth/login-screen.tsx",
-                            lineNumber: 69,
+                            lineNumber: 74,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -399,7 +419,7 @@ function LoginScreen() {
                                                     className: "w-4 h-4 text-destructive flex-shrink-0 mt-0.5"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/auth/login-screen.tsx",
-                                                    lineNumber: 77,
+                                                    lineNumber: 82,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -407,13 +427,13 @@ function LoginScreen() {
                                                     children: error
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/auth/login-screen.tsx",
-                                                    lineNumber: 78,
+                                                    lineNumber: 83,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/auth/login-screen.tsx",
-                                            lineNumber: 76,
+                                            lineNumber: 81,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -424,7 +444,7 @@ function LoginScreen() {
                                                     children: "Email"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/auth/login-screen.tsx",
-                                                    lineNumber: 83,
+                                                    lineNumber: 88,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -436,13 +456,13 @@ function LoginScreen() {
                                                     className: "border-border focus:ring-primary"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/auth/login-screen.tsx",
-                                                    lineNumber: 84,
+                                                    lineNumber: 89,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/auth/login-screen.tsx",
-                                            lineNumber: 82,
+                                            lineNumber: 87,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -453,7 +473,7 @@ function LoginScreen() {
                                                     children: "Password"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/auth/login-screen.tsx",
-                                                    lineNumber: 95,
+                                                    lineNumber: 100,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$input$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Input"], {
@@ -465,13 +485,13 @@ function LoginScreen() {
                                                     className: "border-border focus:ring-primary"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/auth/login-screen.tsx",
-                                                    lineNumber: 96,
+                                                    lineNumber: 101,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/auth/login-screen.tsx",
-                                            lineNumber: 94,
+                                            lineNumber: 99,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -483,20 +503,20 @@ function LoginScreen() {
                                                     className: "w-4 h-4 mr-2 animate-spin"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/auth/login-screen.tsx",
-                                                    lineNumber: 111,
+                                                    lineNumber: 116,
                                                     columnNumber: 29
                                                 }, this),
                                                 loading ? "Signing in..." : "Sign In"
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/auth/login-screen.tsx",
-                                            lineNumber: 106,
+                                            lineNumber: 111,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/auth/login-screen.tsx",
-                                    lineNumber: 74,
+                                    lineNumber: 79,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -507,7 +527,7 @@ function LoginScreen() {
                                             children: "Demo Credentials:"
                                         }, void 0, false, {
                                             fileName: "[project]/components/auth/login-screen.tsx",
-                                            lineNumber: 118,
+                                            lineNumber: 123,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -525,7 +545,7 @@ function LoginScreen() {
                                                             children: cred.role
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/auth/login-screen.tsx",
-                                                            lineNumber: 130,
+                                                            lineNumber: 135,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -533,18 +553,18 @@ function LoginScreen() {
                                                             children: cred.email
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/auth/login-screen.tsx",
-                                                            lineNumber: 131,
+                                                            lineNumber: 136,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, cred.email, true, {
                                                     fileName: "[project]/components/auth/login-screen.tsx",
-                                                    lineNumber: 121,
+                                                    lineNumber: 126,
                                                     columnNumber: 19
                                                 }, this))
                                         }, void 0, false, {
                                             fileName: "[project]/components/auth/login-screen.tsx",
-                                            lineNumber: 119,
+                                            lineNumber: 124,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -552,36 +572,36 @@ function LoginScreen() {
                                             children: "Any password works with demo accounts"
                                         }, void 0, false, {
                                             fileName: "[project]/components/auth/login-screen.tsx",
-                                            lineNumber: 135,
+                                            lineNumber: 140,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/auth/login-screen.tsx",
-                                    lineNumber: 117,
+                                    lineNumber: 122,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/auth/login-screen.tsx",
-                            lineNumber: 73,
+                            lineNumber: 78,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/auth/login-screen.tsx",
-                    lineNumber: 68,
+                    lineNumber: 73,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/components/auth/login-screen.tsx",
-            lineNumber: 55,
+            lineNumber: 60,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/auth/login-screen.tsx",
-        lineNumber: 54,
+        lineNumber: 59,
         columnNumber: 5
     }, this);
 }

@@ -682,23 +682,46 @@ const treatmentService = {
 };
 const paymentService = {
     async getAll () {
-        const { data, error } = await getSupabase().from("payments").select("*, patients(name, email)").order("date", {
+        const { data, error } = await getSupabase().from("payments").select("*, patients(name, email), dentists(name)").order("date", {
             ascending: false
         });
         if (error) throw error;
         return data;
     },
     async getByPatientId (patientId) {
-        const { data, error } = await getSupabase().from("payments").select("*").eq("patient_id", patientId).order("date", {
-            ascending: false
-        });
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("payments").select("*, dentists(name)").eq("patient_id", patientId).order("date", {
+                ascending: false
+            });
+            if (error) {
+                console.warn("Error fetching patient payments:", error.message);
+                return [];
+            }
+            return data || [];
+        } catch (err) {
+            console.warn("Exception fetching patient payments:", err instanceof Error ? err.message : err);
+            return [];
+        }
+    },
+    async getByDentistId (dentistId) {
+        try {
+            const { data, error } = await getSupabase().from("payments").select("*, patients(name, email)").eq("dentist_id", dentistId).order("date", {
+                ascending: false
+            });
+            if (error) {
+                console.warn("Error fetching dentist payments:", error.message);
+                return [];
+            }
+            return data || [];
+        } catch (err) {
+            console.warn("Exception fetching dentist payments:", err instanceof Error ? err.message : err);
+            return [];
+        }
     },
     async create (payment) {
         const { data, error } = await getSupabase().from("payments").insert([
             payment
-        ]).select("*, patients(name)").single();
+        ]).select("*, patients(name), dentists(name)").single();
         if (error) throw error;
         return data;
     },
@@ -706,7 +729,7 @@ const paymentService = {
         const { data, error } = await getSupabase().from("payments").update({
             ...updates,
             updated_at: new Date()
-        }).eq("id", id).select().single();
+        }).eq("id", id).select("*, patients(name), dentists(name)").single();
         if (error) throw error;
         return data;
     },
@@ -715,24 +738,81 @@ const paymentService = {
         if (error) throw error;
     },
     async getPatientBalance (patientId) {
-        const { data, error } = await getSupabase().from("payments").select("amount, status").eq("patient_id", patientId);
-        if (error) throw error;
-        let totalBalance = 0;
-        let totalPaid = 0;
-        data?.forEach((payment)=>{
-            if (payment.status === "paid") {
-                totalPaid += payment.amount;
-            } else if (payment.status === "unpaid") {
-                totalBalance += payment.amount;
-            } else if (payment.status === "partial") {
-                totalBalance += payment.amount;
+        try {
+            const { data, error } = await getSupabase().from("payments").select("amount, status").eq("patient_id", patientId);
+            if (error) {
+                console.warn("Error fetching patient balance:", error.message);
+                return {
+                    totalBalance: 0,
+                    totalPaid: 0,
+                    total: 0
+                };
             }
-        });
-        return {
-            totalBalance,
-            totalPaid,
-            total: totalBalance + totalPaid
-        };
+            let totalBalance = 0;
+            let totalPaid = 0;
+            data?.forEach((payment)=>{
+                if (payment.status === "paid") {
+                    totalPaid += payment.amount;
+                } else if (payment.status === "unpaid") {
+                    totalBalance += payment.amount;
+                } else if (payment.status === "partial") {
+                    totalBalance += payment.amount;
+                }
+            });
+            return {
+                totalBalance,
+                totalPaid,
+                total: totalBalance + totalPaid
+            };
+        } catch (err) {
+            console.warn("Exception fetching patient balance:", err instanceof Error ? err.message : err);
+            return {
+                totalBalance: 0,
+                totalPaid: 0,
+                total: 0
+            };
+        }
+    },
+    async getDentistEarnings (dentistId) {
+        try {
+            const { data, error } = await getSupabase().from("payments").select("amount, status").eq("dentist_id", dentistId);
+            if (error) {
+                console.warn("Error fetching dentist earnings:", error.message);
+                return {
+                    totalEarned: 0,
+                    totalPending: 0,
+                    totalCompleted: 0,
+                    count: 0
+                };
+            }
+            let totalEarned = 0;
+            let totalPending = 0;
+            let totalCompleted = 0;
+            data?.forEach((payment)=>{
+                if (payment.status === "paid") {
+                    totalEarned += payment.amount;
+                    totalCompleted += 1;
+                } else if (payment.status === "unpaid") {
+                    totalPending += payment.amount;
+                } else if (payment.status === "partial") {
+                    totalEarned += payment.amount;
+                }
+            });
+            return {
+                totalEarned,
+                totalPending,
+                totalCompleted,
+                count: data?.length || 0
+            };
+        } catch (err) {
+            console.warn("Exception fetching dentist earnings:", err instanceof Error ? err.message : err);
+            return {
+                totalEarned: 0,
+                totalPending: 0,
+                totalCompleted: 0,
+                count: 0
+            };
+        }
     }
 };
 const inventoryService = {

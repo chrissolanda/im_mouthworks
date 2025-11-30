@@ -42,7 +42,10 @@ export default function AppointmentApprovalModal({
           <div className="space-y-3">
             <div>
               <p className="text-sm font-medium text-muted-foreground">Patient</p>
-              <p className="text-foreground font-semibold">{appointment.patientName}</p>
+              <p className="text-foreground font-semibold">{appointment.patientName || appointment.patients?.name || "N/A"}</p>
+              {appointment.patients?.email && (
+                <p className="text-xs text-muted-foreground">{appointment.patients.email}</p>
+              )}
             </div>
 
             <div>
@@ -59,6 +62,11 @@ export default function AppointmentApprovalModal({
                 <p className="text-sm font-medium text-muted-foreground">Time</p>
                 <p className="text-foreground">{appointment.time}</p>
               </div>
+            </div>
+
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">Status</p>
+              <p className="text-foreground capitalize font-medium">{appointment.status}</p>
             </div>
 
             {appointment.notes && (

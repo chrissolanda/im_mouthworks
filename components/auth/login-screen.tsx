@@ -48,6 +48,11 @@ export default function LoginScreen() {
     { email: "patient@example.com", role: "Patient" },
     { email: "dentist@example.com", role: "Dentist" },
     { email: "hr@example.com", role: "HR/Admin" },
+    { email: "sarah.smith@dental.com", role: "Dentist" },
+    { email: "john.doe@dental.com", role: "Dentist" },
+    { email: "emily.johnson@dental.com", role: "Dentist" },
+    { email: "michael.chen@dental.com", role: "Dentist" },
+    { email: "lisa.anderson@dental.com", role: "Dentist" },
   ]
 
   return (

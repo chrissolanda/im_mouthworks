@@ -24,15 +24,22 @@ import {
 import { paymentService, patientService } from "@/lib/db-service"
 import RecordPaymentModal from "@/components/modals/record-payment-modal"
 
+interface EditingPaymentId {
+  id: string | null
+  field: string | null
+}
+
 interface Payment {
   id: string
   patient_id: string
+  dentist_id?: string
   amount: number
   method: string
   status: "paid" | "partial" | "unpaid"
   date?: string
   description?: string
   patients?: { name: string; email: string }
+  dentists?: { name: string }
 }
 
 export default function HRPayments() {
@@ -43,6 +50,9 @@ export default function HRPayments() {
   const [showRecordModal, setShowRecordModal] = useState(false)
   const [filter, setFilter] = useState("all")
   const [searchTerm, setSearchTerm] = useState("")
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editField, setEditField] = useState<string | null>(null)
+  const [editValue, setEditValue] = useState("")
 
   useEffect(() => {
     loadData()
@@ -79,6 +89,7 @@ export default function HRPayments() {
       setShowRecordModal(false)
     } catch (error) {
       console.error("[v0] Error recording payment:", error)
+      alert("Error recording payment: " + (error instanceof Error ? error.message : "Unknown error"))
     }
   }
 
@@ -89,7 +100,21 @@ export default function HRPayments() {
         setPayments(payments.filter((p) => p.id !== id))
       } catch (error) {
         console.error("[v0] Error deleting payment:", error)
+        alert("Error deleting payment: " + (error instanceof Error ? error.message : "Unknown error"))
       }
+    }
+  }
+
+  const handleEditPayment = async (id: string, field: string, value: any) => {
+    try {
+      const updatedPayment = await paymentService.update(id, { [field]: value })
+      setPayments(payments.map((p) => (p.id === id ? updatedPayment : p)))
+      setEditingId(null)
+      setEditField(null)
+      setEditValue("")
+    } catch (error) {
+      console.error("[v0] Error updating payment:", error)
+      alert("Error updating payment: " + (error instanceof Error ? error.message : "Unknown error"))
     }
   }
 
@@ -216,11 +241,12 @@ export default function HRPayments() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-border">
+                    <th className="text-left py-3 px-4 font-semibold text-foreground">Date</th>
                     <th className="text-left py-3 px-4 font-semibold text-foreground">Patient</th>
+                    <th className="text-left py-3 px-4 font-semibold text-foreground">Dentist</th>
                     <th className="text-left py-3 px-4 font-semibold text-foreground">Description</th>
                     <th className="text-left py-3 px-4 font-semibold text-foreground">Amount</th>
                     <th className="text-left py-3 px-4 font-semibold text-foreground">Method</th>
-                    <th className="text-left py-3 px-4 font-semibold text-foreground">Date</th>
                     <th className="text-left py-3 px-4 font-semibold text-foreground">Status</th>
                     <th className="text-left py-3 px-4 font-semibold text-foreground">Actions</th>
                   </tr>
@@ -228,7 +254,7 @@ export default function HRPayments() {
                 <tbody>
                   {filteredPayments.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-8 text-center text-muted-foreground">
+                      <td colSpan={8} className="py-8 text-center text-muted-foreground">
                         No payments found
                       </td>
                     </tr>
@@ -237,39 +263,60 @@ export default function HRPayments() {
                       const patient = patients.find((p) => p.id === payment.patient_id)
                       return (
                         <tr key={payment.id} className="border-b border-border hover:bg-muted/50 transition-colors">
+                          <td className="py-3 px-4 text-sm text-muted-foreground">
+                            {payment.date ? new Date(payment.date).toLocaleDateString() : "-"}
+                          </td>
                           <td className="py-3 px-4 text-sm font-medium text-foreground">
                             {patient?.name || "Unknown"}
                           </td>
+                          <td className="py-3 px-4 text-sm text-muted-foreground">{payment.dentists?.name || "-"}</td>
                           <td className="py-3 px-4 text-sm text-muted-foreground">{payment.description || "-"}</td>
                           <td className="py-3 px-4 text-sm font-semibold text-foreground">
                             ${payment.amount.toFixed(2)}
                           </td>
                           <td className="py-3 px-4 text-sm text-muted-foreground">{payment.method || "-"}</td>
-                          <td className="py-3 px-4 text-sm text-muted-foreground">
-                            {payment.date ? new Date(payment.date).toLocaleDateString() : "-"}
-                          </td>
                           <td className="py-3 px-4">
-                            <span
-                              className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
-                                payment.status === "paid"
-                                  ? "bg-green-100 text-green-700"
-                                  : payment.status === "partial"
-                                    ? "bg-yellow-100 text-yellow-700"
-                                    : "bg-red-100 text-red-700"
-                              }`}
-                            >
-                              {payment.status === "paid" ? (
-                                <CheckCircle className="w-3 h-3" />
-                              ) : (
-                                <AlertCircle className="w-3 h-3" />
-                              )}
-                              {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
-                            </span>
+                            {editingId === payment.id && editField === "status" ? (
+                              <select
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                onBlur={() => handleEditPayment(payment.id, "status", editValue)}
+                                className="px-2 py-1 border border-border rounded text-xs bg-background text-foreground"
+                                autoFocus
+                              >
+                                <option value="paid">Paid</option>
+                                <option value="partial">Partial</option>
+                                <option value="unpaid">Unpaid</option>
+                              </select>
+                            ) : (
+                              <button
+                                onClick={() => {
+                                  setEditingId(payment.id)
+                                  setEditField("status")
+                                  setEditValue(payment.status)
+                                }}
+                                className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold cursor-pointer hover:opacity-80 transition-opacity ${
+                                  payment.status === "paid"
+                                    ? "bg-green-100 text-green-700"
+                                    : payment.status === "partial"
+                                      ? "bg-yellow-100 text-yellow-700"
+                                      : "bg-red-100 text-red-700"
+                                }`}
+                              >
+                                {payment.status === "paid" ? (
+                                  <CheckCircle className="w-3 h-3" />
+                                ) : (
+                                  <AlertCircle className="w-3 h-3" />
+                                )}
+                                {payment.status.charAt(0).toUpperCase() + payment.status.slice(1)}
+                              </button>
+                            )}
                           </td>
                           <td className="py-3 px-4">
                             <button
                               onClick={() => handleDeletePayment(payment.id)}
                               className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-destructive"
+                              title="Delete payment"
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>

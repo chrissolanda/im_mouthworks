@@ -5,24 +5,26 @@ import { useAuth } from "@/lib/auth-context"
 import MainLayout from "@/components/layout/main-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { LayoutDashboard, Calendar, User, CreditCard, Plus, CalendarIcon, Clock, Trash2, Edit } from "lucide-react"
-import BookAppointmentModal from "@/components/modals/book-appointment-modal"
+import { LayoutDashboard, Calendar, User, CreditCard, CalendarIcon, Clock, Trash2, Edit } from "lucide-react"
 import { appointmentService } from "@/lib/db-service"
 
 export default function PatientAppointments() {
   const { user } = useAuth()
-  const [showBookModal, setShowBookModal] = useState(false)
   const [appointments, setAppointments] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     const loadAppointments = async () => {
       try {
-        if (!user?.id) return
+        if (!user?.id) {
+          setLoading(false)
+          return
+        }
         const data = await appointmentService.getByPatientId(user.id)
-        setAppointments(data)
+        setAppointments(data || [])
       } catch (error) {
-        console.error("[v0] Error loading appointments:", error)
+        console.error("[v0] Error loading appointments:", error instanceof Error ? error.message : error)
+        setAppointments([])
       } finally {
         setLoading(false)
       }
@@ -38,23 +40,6 @@ export default function PatientAppointments() {
     { label: "Payment History", icon: <CreditCard className="w-5 h-5" />, href: "/patient/payments" },
   ]
 
-  const handleBookAppointment = async (data: any) => {
-    try {
-      const newAppointment = await appointmentService.create({
-        patient_id: user?.id,
-        date: data.date,
-        time: data.time,
-        service: data.service,
-        status: "pending",
-        notes: data.notes,
-      })
-      setAppointments([newAppointment, ...appointments])
-      setShowBookModal(false)
-    } catch (error) {
-      console.error("[v0] Error booking appointment:", error)
-    }
-  }
-
   const handleCancelAppointment = async (id: string) => {
     try {
       await appointmentService.delete(id)
@@ -64,25 +49,16 @@ export default function PatientAppointments() {
     }
   }
 
-  const upcomingAppointments = appointments.filter((a) => a.status !== "completed")
+  const upcomingAppointments = appointments.filter((a) => a.status === "confirmed" && a.status !== "completed")
   const completedAppointments = appointments.filter((a) => a.status === "completed")
 
   return (
     <MainLayout navItems={navItems} title="My Appointments">
       <div className="space-y-6">
-        {/* Header with Action */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-2xl font-bold text-foreground">Manage Appointments</h2>
-            <p className="text-muted-foreground">Book, view, and manage your dental appointments</p>
-          </div>
-          <Button
-            onClick={() => setShowBookModal(true)}
-            className="bg-primary hover:bg-primary/90 text-primary-foreground gap-2"
-          >
-            <Plus className="w-4 h-4" />
-            Book Appointment
-          </Button>
+        {/* Header */}
+        <div>
+          <h2 className="text-2xl font-bold text-foreground">My Appointments</h2>
+          <p className="text-muted-foreground">View appointments scheduled by HR and approved by your dentist</p>
         </div>
 
         {/* Upcoming Appointments */}
@@ -99,10 +75,7 @@ export default function PatientAppointments() {
               <div className="text-center py-8 text-muted-foreground">Loading...</div>
             ) : upcomingAppointments.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-muted-foreground">No upcoming appointments</p>
-                <Button onClick={() => setShowBookModal(true)} variant="outline" className="mt-4">
-                  Book Your First Appointment
-                </Button>
+                <p className="text-muted-foreground">No approved appointments yet. HR will schedule appointments that will appear here once your dentist approves them.</p>
               </div>
             ) : (
               <div className="space-y-3">
@@ -198,10 +171,6 @@ export default function PatientAppointments() {
           </Card>
         )}
       </div>
-
-      {showBookModal && (
-        <BookAppointmentModal onClose={() => setShowBookModal(false)} onSubmit={handleBookAppointment} />
-      )}
     </MainLayout>
   )
 }

@@ -171,6 +171,7 @@
     --color-red-200: #ffcaca;
     --color-red-300: #ffa3a3;
     --color-red-400: #ff6568;
+    --color-red-500: #fb2c36;
     --color-red-600: #e40014;
     --color-red-700: #bf000f;
     --color-yellow-50: #fefce8;
@@ -237,6 +238,7 @@
       --color-red-200: lab(86.017% 19.8815 7.75869);
       --color-red-300: lab(76.5514% 36.4219 15.5335);
       --color-red-400: lab(63.7053% 60.7449 31.3109);
+      --color-red-500: lab(55.4814% 75.0732 48.8528);
       --color-red-600: lab(48.4493% 77.4328 61.5452);
       --color-red-700: lab(40.4273% 67.2623 53.7441);
       --color-yellow-50: lab(98.6846% -1.79058 9.77662);
@@ -541,6 +543,10 @@
 
   .invisible {
     visibility: hidden;
+  }
+
+  .visible {
+    visibility: visible;
   }
 
   .sr-only {
@@ -895,6 +901,10 @@
 
   .hidden {
     display: none;
+  }
+
+  .inline {
+    display: inline;
   }
 
   .inline-block {
@@ -1437,6 +1447,10 @@
     cursor: default;
   }
 
+  .cursor-not-allowed {
+    cursor: not-allowed;
+  }
+
   .cursor-pointer {
     cursor: pointer;
   }
@@ -1659,6 +1673,10 @@
     overflow-y: auto;
   }
 
+  .rounded {
+    border-radius: .25rem;
+  }
+
   .rounded-\[2px\] {
     border-radius: 2px;
   }
@@ -1767,6 +1785,11 @@
     border-left-width: 1px;
   }
 
+  .border-l-4 {
+    border-left-style: var(--tw-border-style);
+    border-left-width: 4px;
+  }
+
   .border-dashed {
     --tw-border-style: dashed;
     border-style: dashed;
@@ -1836,8 +1859,28 @@
     border-top-color: #0000;
   }
 
+  .border-l-blue-600 {
+    border-left-color: var(--color-blue-600);
+  }
+
+  .border-l-destructive {
+    border-left-color: var(--destructive);
+  }
+
+  .border-l-green-600 {
+    border-left-color: var(--color-green-600);
+  }
+
+  .border-l-primary {
+    border-left-color: var(--primary);
+  }
+
   .border-l-transparent {
     border-left-color: #0000;
+  }
+
+  .border-l-yellow-600 {
+    border-left-color: var(--color-yellow-600);
   }
 
   .bg-\(--color-bg\) {
@@ -2197,6 +2240,10 @@
     padding-top: calc(var(--spacing) * 0);
   }
 
+  .pt-2 {
+    padding-top: calc(var(--spacing) * 2);
+  }
+
   .pt-3 {
     padding-top: calc(var(--spacing) * 3);
   }
@@ -2458,6 +2505,10 @@
 
   .text-primary-foreground {
     color: var(--primary-foreground);
+  }
+
+  .text-red-500 {
+    color: var(--color-red-500);
   }
 
   .text-red-700 {
@@ -3337,6 +3388,12 @@
   @media (hover: hover) {
     .hover\:underline:hover {
       text-decoration-line: underline;
+    }
+  }
+
+  @media (hover: hover) {
+    .hover\:opacity-80:hover {
+      opacity: .8;
     }
   }
 

@@ -682,23 +682,46 @@ const treatmentService = {
 };
 const paymentService = {
     async getAll () {
-        const { data, error } = await getSupabase().from("payments").select("*, patients(name, email)").order("date", {
+        const { data, error } = await getSupabase().from("payments").select("*, patients(name, email), dentists(name)").order("date", {
             ascending: false
         });
         if (error) throw error;
         return data;
     },
     async getByPatientId (patientId) {
-        const { data, error } = await getSupabase().from("payments").select("*").eq("patient_id", patientId).order("date", {
-            ascending: false
-        });
-        if (error) throw error;
-        return data;
+        try {
+            const { data, error } = await getSupabase().from("payments").select("*, dentists(name)").eq("patient_id", patientId).order("date", {
+                ascending: false
+            });
+            if (error) {
+                console.warn("Error fetching patient payments:", error.message);
+                return [];
+            }
+            return data || [];
+        } catch (err) {
+            console.warn("Exception fetching patient payments:", err instanceof Error ? err.message : err);
+            return [];
+        }
+    },
+    async getByDentistId (dentistId) {
+        try {
+            const { data, error } = await getSupabase().from("payments").select("*, patients(name, email)").eq("dentist_id", dentistId).order("date", {
+                ascending: false
+            });
+            if (error) {
+                console.warn("Error fetching dentist payments:", error.message);
+                return [];
+            }
+            return data || [];
+        } catch (err) {
+            console.warn("Exception fetching dentist payments:", err instanceof Error ? err.message : err);
+            return [];
+        }
     },
     async create (payment) {
         const { data, error } = await getSupabase().from("payments").insert([
             payment
-        ]).select("*, patients(name)").single();
+        ]).select("*, patients(name), dentists(name)").single();
         if (error) throw error;
         return data;
     },
@@ -706,7 +729,7 @@ const paymentService = {
         const { data, error } = await getSupabase().from("payments").update({
             ...updates,
             updated_at: new Date()
-        }).eq("id", id).select().single();
+        }).eq("id", id).select("*, patients(name), dentists(name)").single();
         if (error) throw error;
         return data;
     },
@@ -715,24 +738,81 @@ const paymentService = {
         if (error) throw error;
     },
     async getPatientBalance (patientId) {
-        const { data, error } = await getSupabase().from("payments").select("amount, status").eq("patient_id", patientId);
-        if (error) throw error;
-        let totalBalance = 0;
-        let totalPaid = 0;
-        data?.forEach((payment)=>{
-            if (payment.status === "paid") {
-                totalPaid += payment.amount;
-            } else if (payment.status === "unpaid") {
-                totalBalance += payment.amount;
-            } else if (payment.status === "partial") {
-                totalBalance += payment.amount;
+        try {
+            const { data, error } = await getSupabase().from("payments").select("amount, status").eq("patient_id", patientId);
+            if (error) {
+                console.warn("Error fetching patient balance:", error.message);
+                return {
+                    totalBalance: 0,
+                    totalPaid: 0,
+                    total: 0
+                };
             }
-        });
-        return {
-            totalBalance,
-            totalPaid,
-            total: totalBalance + totalPaid
-        };
+            let totalBalance = 0;
+            let totalPaid = 0;
+            data?.forEach((payment)=>{
+                if (payment.status === "paid") {
+                    totalPaid += payment.amount;
+                } else if (payment.status === "unpaid") {
+                    totalBalance += payment.amount;
+                } else if (payment.status === "partial") {
+                    totalBalance += payment.amount;
+                }
+            });
+            return {
+                totalBalance,
+                totalPaid,
+                total: totalBalance + totalPaid
+            };
+        } catch (err) {
+            console.warn("Exception fetching patient balance:", err instanceof Error ? err.message : err);
+            return {
+                totalBalance: 0,
+                totalPaid: 0,
+                total: 0
+            };
+        }
+    },
+    async getDentistEarnings (dentistId) {
+        try {
+            const { data, error } = await getSupabase().from("payments").select("amount, status").eq("dentist_id", dentistId);
+            if (error) {
+                console.warn("Error fetching dentist earnings:", error.message);
+                return {
+                    totalEarned: 0,
+                    totalPending: 0,
+                    totalCompleted: 0,
+                    count: 0
+                };
+            }
+            let totalEarned = 0;
+            let totalPending = 0;
+            let totalCompleted = 0;
+            data?.forEach((payment)=>{
+                if (payment.status === "paid") {
+                    totalEarned += payment.amount;
+                    totalCompleted += 1;
+                } else if (payment.status === "unpaid") {
+                    totalPending += payment.amount;
+                } else if (payment.status === "partial") {
+                    totalEarned += payment.amount;
+                }
+            });
+            return {
+                totalEarned,
+                totalPending,
+                totalCompleted,
+                count: data?.length || 0
+            };
+        } catch (err) {
+            console.warn("Exception fetching dentist earnings:", err instanceof Error ? err.message : err);
+            return {
+                totalEarned: 0,
+                totalPending: 0,
+                totalCompleted: 0,
+                count: 0
+            };
+        }
     }
 };
 const inventoryService = {
@@ -865,30 +945,56 @@ function PatientDashboard() {
             const loadData = {
                 "PatientDashboard.useEffect.loadData": async ()=>{
                     try {
-                        if (!user?.id) return;
-                        const appointments = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2d$service$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["appointmentService"].getByPatientId(user.id);
-                        const payments = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2d$service$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["paymentService"].getByPatientId(user.id);
+                        if (!user?.id) {
+                            setLoading(false);
+                            return;
+                        }
+                        let appointments = [];
+                        let payments = [];
+                        // Load appointments with detailed error handling
+                        try {
+                            const appointmentData = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2d$service$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["appointmentService"].getByPatientId(user.id);
+                            appointments = appointmentData || [];
+                        } catch (err) {
+                            console.error("Error loading appointments:", err instanceof Error ? err.message : err);
+                            appointments = [];
+                        }
+                        // Load payments with detailed error handling
+                        try {
+                            const paymentData = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$db$2d$service$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["paymentService"].getByPatientId(user.id);
+                            payments = paymentData || [];
+                        } catch (err) {
+                            console.error("Error loading payments:", err instanceof Error ? err.message : err);
+                            payments = [];
+                        }
                         // Calculate stats
-                        const upcoming = appointments.filter({
+                        const upcoming = appointments?.filter({
                             "PatientDashboard.useEffect.loadData": (a)=>a.status !== "completed"
-                        }["PatientDashboard.useEffect.loadData"]).length;
-                        const outstandingBalance = payments.filter({
-                            "PatientDashboard.useEffect.loadData.outstandingBalance": (p)=>p.status !== "paid"
-                        }["PatientDashboard.useEffect.loadData.outstandingBalance"]).reduce({
-                            "PatientDashboard.useEffect.loadData.outstandingBalance": (sum, p)=>sum + (p.amount || 0)
-                        }["PatientDashboard.useEffect.loadData.outstandingBalance"], 0);
-                        const completed = appointments.filter({
-                            "PatientDashboard.useEffect.loadData.completed": (a)=>a.status === "completed"
-                        }["PatientDashboard.useEffect.loadData.completed"]);
+                        }["PatientDashboard.useEffect.loadData"])?.length || 0;
+                        const outstandingBalance = payments?.filter({
+                            "PatientDashboard.useEffect.loadData": (p)=>p.status !== "paid"
+                        }["PatientDashboard.useEffect.loadData"])?.reduce({
+                            "PatientDashboard.useEffect.loadData": (sum, p)=>sum + (p.amount || 0)
+                        }["PatientDashboard.useEffect.loadData"], 0) || 0;
+                        const completed = appointments?.filter({
+                            "PatientDashboard.useEffect.loadData": (a)=>a.status === "completed"
+                        }["PatientDashboard.useEffect.loadData"]) || [];
                         const lastVisit = completed.length > 0 ? new Date(completed[0].date).toLocaleDateString() : "No visits yet";
                         setStats({
                             upcomingCount: upcoming,
                             outstandingBalance,
                             lastVisit
                         });
-                        setRecentAppointments(appointments.slice(0, 3));
+                        setRecentAppointments(appointments?.slice(0, 3) || []);
                     } catch (error) {
-                        console.error("[v0] Error loading dashboard:", error);
+                        console.error("[v0] Error loading dashboard:", error instanceof Error ? error.message : error);
+                        // Set defaults on error
+                        setStats({
+                            upcomingCount: 0,
+                            outstandingBalance: 0,
+                            lastVisit: "No visits yet"
+                        });
+                        setRecentAppointments([]);
                     } finally{
                         setLoading(false);
                     }
@@ -906,7 +1012,7 @@ function PatientDashboard() {
                 className: "w-5 h-5"
             }, void 0, false, {
                 fileName: "[project]/app/patient/dashboard/page.tsx",
-                lineNumber: 51,
+                lineNumber: 81,
                 columnNumber: 33
             }, this),
             href: "/patient/dashboard"
@@ -917,7 +1023,7 @@ function PatientDashboard() {
                 className: "w-5 h-5"
             }, void 0, false, {
                 fileName: "[project]/app/patient/dashboard/page.tsx",
-                lineNumber: 52,
+                lineNumber: 82,
                 columnNumber: 39
             }, this),
             href: "/patient/appointments"
@@ -928,7 +1034,7 @@ function PatientDashboard() {
                 className: "w-5 h-5"
             }, void 0, false, {
                 fileName: "[project]/app/patient/dashboard/page.tsx",
-                lineNumber: 53,
+                lineNumber: 83,
                 columnNumber: 34
             }, this),
             href: "/patient/profile"
@@ -939,7 +1045,7 @@ function PatientDashboard() {
                 className: "w-5 h-5"
             }, void 0, false, {
                 fileName: "[project]/app/patient/dashboard/page.tsx",
-                lineNumber: 54,
+                lineNumber: 84,
                 columnNumber: 39
             }, this),
             href: "/patient/payments"
@@ -963,7 +1069,7 @@ function PatientDashboard() {
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/patient/dashboard/page.tsx",
-                            lineNumber: 62,
+                            lineNumber: 92,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -971,13 +1077,13 @@ function PatientDashboard() {
                             children: "Manage your dental appointments and health records"
                         }, void 0, false, {
                             fileName: "[project]/app/patient/dashboard/page.tsx",
-                            lineNumber: 63,
+                            lineNumber: 93,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/patient/dashboard/page.tsx",
-                    lineNumber: 61,
+                    lineNumber: 91,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -993,12 +1099,12 @@ function PatientDashboard() {
                                         children: "Upcoming Appointments"
                                     }, void 0, false, {
                                         fileName: "[project]/app/patient/dashboard/page.tsx",
-                                        lineNumber: 70,
+                                        lineNumber: 100,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/patient/dashboard/page.tsx",
-                                    lineNumber: 69,
+                                    lineNumber: 99,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1008,7 +1114,7 @@ function PatientDashboard() {
                                             children: stats.upcomingCount
                                         }, void 0, false, {
                                             fileName: "[project]/app/patient/dashboard/page.tsx",
-                                            lineNumber: 73,
+                                            lineNumber: 103,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1016,19 +1122,19 @@ function PatientDashboard() {
                                             children: "Scheduled appointments"
                                         }, void 0, false, {
                                             fileName: "[project]/app/patient/dashboard/page.tsx",
-                                            lineNumber: 74,
+                                            lineNumber: 104,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/patient/dashboard/page.tsx",
-                                    lineNumber: 72,
+                                    lineNumber: 102,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/patient/dashboard/page.tsx",
-                            lineNumber: 68,
+                            lineNumber: 98,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -1041,12 +1147,12 @@ function PatientDashboard() {
                                         children: "Outstanding Balance"
                                     }, void 0, false, {
                                         fileName: "[project]/app/patient/dashboard/page.tsx",
-                                        lineNumber: 80,
+                                        lineNumber: 110,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/patient/dashboard/page.tsx",
-                                    lineNumber: 79,
+                                    lineNumber: 109,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1059,7 +1165,7 @@ function PatientDashboard() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/patient/dashboard/page.tsx",
-                                            lineNumber: 83,
+                                            lineNumber: 113,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1067,19 +1173,19 @@ function PatientDashboard() {
                                             children: "Pending payments"
                                         }, void 0, false, {
                                             fileName: "[project]/app/patient/dashboard/page.tsx",
-                                            lineNumber: 84,
+                                            lineNumber: 114,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/patient/dashboard/page.tsx",
-                                    lineNumber: 82,
+                                    lineNumber: 112,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/patient/dashboard/page.tsx",
-                            lineNumber: 78,
+                            lineNumber: 108,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -1092,12 +1198,12 @@ function PatientDashboard() {
                                         children: "Last Visit"
                                     }, void 0, false, {
                                         fileName: "[project]/app/patient/dashboard/page.tsx",
-                                        lineNumber: 90,
+                                        lineNumber: 120,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/app/patient/dashboard/page.tsx",
-                                    lineNumber: 89,
+                                    lineNumber: 119,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1107,7 +1213,7 @@ function PatientDashboard() {
                                             children: stats.lastVisit
                                         }, void 0, false, {
                                             fileName: "[project]/app/patient/dashboard/page.tsx",
-                                            lineNumber: 93,
+                                            lineNumber: 123,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1115,25 +1221,25 @@ function PatientDashboard() {
                                             children: "Most recent visit"
                                         }, void 0, false, {
                                             fileName: "[project]/app/patient/dashboard/page.tsx",
-                                            lineNumber: 94,
+                                            lineNumber: 124,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/app/patient/dashboard/page.tsx",
-                                    lineNumber: 92,
+                                    lineNumber: 122,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/patient/dashboard/page.tsx",
-                            lineNumber: 88,
+                            lineNumber: 118,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/patient/dashboard/page.tsx",
-                    lineNumber: 67,
+                    lineNumber: 97,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1154,7 +1260,7 @@ function PatientDashboard() {
                                                     className: "w-5 h-5 text-primary"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/patient/dashboard/page.tsx",
-                                                    lineNumber: 105,
+                                                    lineNumber: 135,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardTitle"], {
@@ -1162,18 +1268,18 @@ function PatientDashboard() {
                                                     children: "Book Appointment"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/patient/dashboard/page.tsx",
-                                                    lineNumber: 106,
+                                                    lineNumber: 136,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/patient/dashboard/page.tsx",
-                                            lineNumber: 104,
+                                            lineNumber: 134,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/patient/dashboard/page.tsx",
-                                        lineNumber: 103,
+                                        lineNumber: 133,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1182,23 +1288,23 @@ function PatientDashboard() {
                                             children: "Schedule your next dental visit"
                                         }, void 0, false, {
                                             fileName: "[project]/app/patient/dashboard/page.tsx",
-                                            lineNumber: 110,
+                                            lineNumber: 140,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/patient/dashboard/page.tsx",
-                                        lineNumber: 109,
+                                        lineNumber: 139,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/patient/dashboard/page.tsx",
-                                lineNumber: 102,
+                                lineNumber: 132,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/patient/dashboard/page.tsx",
-                            lineNumber: 101,
+                            lineNumber: 131,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$client$2f$app$2d$dir$2f$link$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -1216,7 +1322,7 @@ function PatientDashboard() {
                                                     className: "w-5 h-5 text-primary"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/patient/dashboard/page.tsx",
-                                                    lineNumber: 119,
+                                                    lineNumber: 149,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardTitle"], {
@@ -1224,18 +1330,18 @@ function PatientDashboard() {
                                                     children: "Payment Info"
                                                 }, void 0, false, {
                                                     fileName: "[project]/app/patient/dashboard/page.tsx",
-                                                    lineNumber: 120,
+                                                    lineNumber: 150,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/app/patient/dashboard/page.tsx",
-                                            lineNumber: 118,
+                                            lineNumber: 148,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/patient/dashboard/page.tsx",
-                                        lineNumber: 117,
+                                        lineNumber: 147,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1244,29 +1350,29 @@ function PatientDashboard() {
                                             children: "View and manage your payments"
                                         }, void 0, false, {
                                             fileName: "[project]/app/patient/dashboard/page.tsx",
-                                            lineNumber: 124,
+                                            lineNumber: 154,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/app/patient/dashboard/page.tsx",
-                                        lineNumber: 123,
+                                        lineNumber: 153,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/app/patient/dashboard/page.tsx",
-                                lineNumber: 116,
+                                lineNumber: 146,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/patient/dashboard/page.tsx",
-                            lineNumber: 115,
+                            lineNumber: 145,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/patient/dashboard/page.tsx",
-                    lineNumber: 100,
+                    lineNumber: 130,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -1277,20 +1383,20 @@ function PatientDashboard() {
                                     children: "Recent Appointments"
                                 }, void 0, false, {
                                     fileName: "[project]/app/patient/dashboard/page.tsx",
-                                    lineNumber: 133,
+                                    lineNumber: 163,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardDescription"], {
                                     children: "Your last 3 appointments"
                                 }, void 0, false, {
                                     fileName: "[project]/app/patient/dashboard/page.tsx",
-                                    lineNumber: 134,
+                                    lineNumber: 164,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/app/patient/dashboard/page.tsx",
-                            lineNumber: 132,
+                            lineNumber: 162,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["CardContent"], {
@@ -1299,14 +1405,14 @@ function PatientDashboard() {
                                 children: "Loading..."
                             }, void 0, false, {
                                 fileName: "[project]/app/patient/dashboard/page.tsx",
-                                lineNumber: 138,
+                                lineNumber: 168,
                                 columnNumber: 15
                             }, this) : recentAppointments.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "text-center py-4 text-muted-foreground",
                                 children: "No appointments yet"
                             }, void 0, false, {
                                 fileName: "[project]/app/patient/dashboard/page.tsx",
-                                lineNumber: 140,
+                                lineNumber: 170,
                                 columnNumber: 15
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
                                 className: "space-y-4",
@@ -1320,7 +1426,7 @@ function PatientDashboard() {
                                                         className: "w-4 h-4 text-primary"
                                                     }, void 0, false, {
                                                         fileName: "[project]/app/patient/dashboard/page.tsx",
-                                                        lineNumber: 149,
+                                                        lineNumber: 179,
                                                         columnNumber: 23
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -1330,7 +1436,7 @@ function PatientDashboard() {
                                                                 children: apt.service
                                                             }, void 0, false, {
                                                                 fileName: "[project]/app/patient/dashboard/page.tsx",
-                                                                lineNumber: 151,
+                                                                lineNumber: 181,
                                                                 columnNumber: 25
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1342,19 +1448,19 @@ function PatientDashboard() {
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/app/patient/dashboard/page.tsx",
-                                                                lineNumber: 152,
+                                                                lineNumber: 182,
                                                                 columnNumber: 25
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/app/patient/dashboard/page.tsx",
-                                                        lineNumber: 150,
+                                                        lineNumber: 180,
                                                         columnNumber: 23
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/app/patient/dashboard/page.tsx",
-                                                lineNumber: 148,
+                                                lineNumber: 178,
                                                 columnNumber: 21
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1362,40 +1468,40 @@ function PatientDashboard() {
                                                 children: apt.dentists?.name || "TBD"
                                             }, void 0, false, {
                                                 fileName: "[project]/app/patient/dashboard/page.tsx",
-                                                lineNumber: 157,
+                                                lineNumber: 187,
                                                 columnNumber: 21
                                             }, this)
                                         ]
                                     }, apt.id, true, {
                                         fileName: "[project]/app/patient/dashboard/page.tsx",
-                                        lineNumber: 144,
+                                        lineNumber: 174,
                                         columnNumber: 19
                                     }, this))
                             }, void 0, false, {
                                 fileName: "[project]/app/patient/dashboard/page.tsx",
-                                lineNumber: 142,
+                                lineNumber: 172,
                                 columnNumber: 15
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/app/patient/dashboard/page.tsx",
-                            lineNumber: 136,
+                            lineNumber: 166,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/app/patient/dashboard/page.tsx",
-                    lineNumber: 131,
+                    lineNumber: 161,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/app/patient/dashboard/page.tsx",
-            lineNumber: 59,
+            lineNumber: 89,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/app/patient/dashboard/page.tsx",
-        lineNumber: 58,
+        lineNumber: 88,
         columnNumber: 5
     }, this);
 }

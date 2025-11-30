@@ -34,27 +34,36 @@ export default function HRDashboard() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const patients = await patientService.getAll()
-        const appointments = await appointmentService.getAll()
-        const payments = await paymentService.getAll()
-        const inventory = await inventoryService.getAll()
+        const [patients, appointments, payments, inventory] = await Promise.all([
+          patientService.getAll().catch(() => []),
+          appointmentService.getAll().catch(() => []),
+          paymentService.getAll().catch(() => []),
+          inventoryService.getAll().catch(() => []),
+        ])
 
         const today = new Date().toISOString().split("T")[0]
-        const todayAppointments = appointments.filter((a: any) => a.date === today)
-
-        const pendingPayments = payments.filter((p: any) => p.status !== "paid").reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
-
-        const lowStock = inventory.filter((i: any) => i.status === "low" || i.status === "critical").length
+        const todayAppts = (appointments || []).filter((a: any) => a.date === today)
+        const pendingPaymentsAmount = (payments || [])
+          .filter((p: any) => p.status !== "paid")
+          .reduce((sum: number, p: any) => sum + (p.amount || 0), 0)
+        const lowStockCount = (inventory || []).filter((i: any) => i.status === "low" || i.status === "critical").length
 
         setStats({
-          totalPatients: patients.length,
-          todayAppointments: todayAppointments.length,
-          pendingPayments,
-          lowStockItems: lowStock,
+          totalPatients: patients?.length || 0,
+          todayAppointments: todayAppts?.length || 0,
+          pendingPayments: pendingPaymentsAmount || 0,
+          lowStockItems: lowStockCount || 0,
         })
-        setTodayAppointments(todayAppointments.slice(0, 4))
+        setTodayAppointments((todayAppts || []).slice(0, 4))
       } catch (error) {
-        console.error("[v0] Error loading dashboard:", error)
+        console.error("[v0] Error loading dashboard:", error instanceof Error ? error.message : error)
+        setStats({
+          totalPatients: 0,
+          todayAppointments: 0,
+          pendingPayments: 0,
+          lowStockItems: 0,
+        })
+        setTodayAppointments([])
       } finally {
         setLoading(false)
       }
