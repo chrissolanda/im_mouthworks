@@ -1,0 +1,6 @@
+[00:00:03.210] Server  LOG      ✓ Ready in 2.4s
+[00:04:13.380] Server  LOG      ○ Compiling / ...
+[00:04:14.886] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:04:52.951] Browser ERROR   Supabase error creating patient: {"code":"42501","details":null,"hint":null,"message":"new row violates row-level security policy for table \"patients\""}
+[00:04:52.951] Browser ERROR   [v0] Error adding patient: {}
+[00:07:09.266] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold

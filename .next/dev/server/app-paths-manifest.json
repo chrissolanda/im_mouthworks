@@ -1,0 +1,6 @@
+{
+  "/hr/appointments/page": "app/hr/appointments/page.js",
+  "/hr/dashboard/page": "app/hr/dashboard/page.js",
+  "/hr/patients/page": "app/hr/patients/page.js",
+  "/page": "app/page.js"
+}
