@@ -2,27 +2,61 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { X } from "lucide-react"
-import { mockPatients, mockDentists, mockAvailableSlots } from "@/components/data/mock-data"
+import { patientService, dentistService } from "@/lib/db-service"
 
 interface ScheduleAppointmentModalProps {
   onClose: () => void
   onSubmit: (data: any) => void
 }
 
+interface Patient {
+  id: string
+  name: string
+  email: string
+}
+
+interface Dentist {
+  id: string
+  name: string
+  email?: string
+}
+
 export default function ScheduleAppointmentModal({ onClose, onSubmit }: ScheduleAppointmentModalProps) {
   const [formData, setFormData] = useState({
-    patientId: "",
-    patientName: "",
-    doctorId: "",
-    doctorName: "",
+    patient_id: "",
+    patient_name: "",
+    dentist_id: null as string | null,
+    dentist_name: "",
     date: "",
     time: "",
     service: "Cleaning",
     notes: "",
   })
+  const [patients, setPatients] = useState<Patient[]>([])
+  const [dentists, setDentists] = useState<Dentist[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  const loadData = async () => {
+    try {
+      setLoading(true)
+      const [patientsData, dentistsData] = await Promise.all([patientService.getAll(), dentistService.getAll()])
+      setPatients(patientsData || [])
+      setDentists(dentistsData || [])
+    } catch (err) {
+      setError("Failed to load patients and dentists")
+      console.error("Error loading data:", err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -31,35 +65,43 @@ export default function ScheduleAppointmentModal({ onClose, onSubmit }: Schedule
 
   const handlePatientChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const patientId = e.target.value
-    const patient = mockPatients.find((p) => p.id === patientId)
+    const patient = patients.find((p) => p.id === patientId)
     setFormData((prev) => ({
       ...prev,
-      patientId,
-      patientName: patient?.name || "",
+      patient_id: patientId,
+      patient_name: patient?.name || "",
     }))
   }
 
   const handleDoctorChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const doctorId = e.target.value
-    const doctor = mockDentists.find((d) => d.id === doctorId)
+    const dentistId = e.target.value
+    const dentist = dentists.find((d) => d.id === dentistId)
     setFormData((prev) => ({
       ...prev,
-      doctorId,
-      doctorName: doctor?.name || "",
+      dentist_id: dentistId === "" ? null : dentistId, // Convert empty string to null
+      dentist_name: dentist?.name || "",
     }))
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (formData.patientId && formData.doctorId && formData.date && formData.time) {
-      onSubmit({
-        ...formData,
+    if (formData.patient_id && formData.date && formData.time) {
+      const submitData = {
+        patient_id: formData.patient_id,
+        dentist_id: formData.dentist_id, // Already null if unassigned
+        date: formData.date,
+        time: formData.time,
+        service: formData.service,
+        notes: formData.notes,
         status: "pending",
-      })
+      }
+      console.log("[v0] Submitting appointment data:", submitData, "dentist_id type:", typeof submitData.dentist_id, "dentist_id value:", submitData.dentist_id)
+      onSubmit(submitData)
     }
   }
 
-  const selectedDateSlots = mockAvailableSlots.find((s) => s.date === formData.date)?.slots || []
+  // Generate available time slots
+  const timeSlots = ["09:00", "10:00", "11:00", "14:00", "15:00", "16:00", "17:00"]
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
@@ -72,37 +114,47 @@ export default function ScheduleAppointmentModal({ onClose, onSubmit }: Schedule
           </button>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <div className="p-4 bg-destructive/10 text-destructive text-sm">
+            {error}
+          </div>
+        )}
+
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Patient</label>
-            <select
-              name="patientId"
-              value={formData.patientId}
-              onChange={handlePatientChange}
-              className="w-full px-3 py-2 border border-border rounded-lg"
-              required
-            >
-              <option value="">Select patient...</option>
-              {mockPatients.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
+            <label className="text-sm font-medium text-foreground">Patient *</label>
+            {loading ? (
+              <div className="text-sm text-muted-foreground">Loading patients...</div>
+            ) : (
+              <select
+                name="patient_id"
+                value={formData.patient_id}
+                onChange={handlePatientChange}
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+                required
+              >
+                <option value="">Select patient...</option>
+                {patients.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Dentist</label>
+            <label className="text-sm font-medium text-foreground">Dentist (Optional)</label>
             <select
-              name="doctorId"
-              value={formData.doctorId}
+              name="dentist_id"
+              value={formData.dentist_id || ""}
               onChange={handleDoctorChange}
-              className="w-full px-3 py-2 border border-border rounded-lg"
-              required
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
             >
-              <option value="">Select dentist...</option>
-              {mockDentists.map((d) => (
+              <option value="">Unassigned</option>
+              {dentists.map((d) => (
                 <option key={d.id} value={d.id}>
                   {d.name}
                 </option>
@@ -116,7 +168,7 @@ export default function ScheduleAppointmentModal({ onClose, onSubmit }: Schedule
               name="service"
               value={formData.service}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-border rounded-lg"
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
             >
               <option>Cleaning</option>
               <option>Check-up</option>
@@ -128,46 +180,34 @@ export default function ScheduleAppointmentModal({ onClose, onSubmit }: Schedule
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Date</label>
-            <select
+            <label className="text-sm font-medium text-foreground">Date *</label>
+            <input
+              type="date"
               name="date"
               value={formData.date}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-border rounded-lg"
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+              required
+            />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Time *</label>
+            <select
+              name="time"
+              value={formData.time}
+              onChange={handleInputChange}
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
               required
             >
-              <option value="">Select date...</option>
-              {mockAvailableSlots.map((slot) => (
-                <option key={slot.date} value={slot.date}>
-                  {new Date(slot.date).toLocaleDateString("en-US", {
-                    weekday: "short",
-                    month: "short",
-                    day: "numeric",
-                  })}
+              <option value="">Select time...</option>
+              {timeSlots.map((time) => (
+                <option key={time} value={time}>
+                  {time}
                 </option>
               ))}
             </select>
           </div>
-
-          {formData.date && selectedDateSlots.length > 0 && (
-            <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Time</label>
-              <select
-                name="time"
-                value={formData.time}
-                onChange={handleInputChange}
-                className="w-full px-3 py-2 border border-border rounded-lg"
-                required
-              >
-                <option value="">Select time...</option>
-                {selectedDateSlots.map((time) => (
-                  <option key={time} value={time}>
-                    {time}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
 
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Notes (Optional)</label>
@@ -176,7 +216,7 @@ export default function ScheduleAppointmentModal({ onClose, onSubmit }: Schedule
               value={formData.notes}
               onChange={handleInputChange}
               placeholder="Any special notes..."
-              className="w-full p-2 border border-border rounded-lg text-sm resize-none"
+              className="w-full p-2 border border-border rounded-lg text-sm resize-none bg-background text-foreground"
               rows={3}
             />
           </div>
@@ -185,7 +225,7 @@ export default function ScheduleAppointmentModal({ onClose, onSubmit }: Schedule
             <Button type="button" onClick={onClose} variant="outline" className="flex-1 bg-transparent">
               Cancel
             </Button>
-            <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground" disabled={loading}>
               Schedule
             </Button>
           </div>

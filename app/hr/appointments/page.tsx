@@ -76,7 +76,9 @@ export default function HRAppointments() {
       setAppointments([newAppointment, ...appointments])
       setShowScheduleModal(false)
     } catch (error) {
-      console.error("[v0] Error scheduling appointment:", error)
+      const errorMsg = error instanceof Error ? error.message : JSON.stringify(error)
+      console.error("[v0] Error scheduling appointment:", errorMsg)
+      alert(`Error: ${errorMsg}`)
     }
   }
 

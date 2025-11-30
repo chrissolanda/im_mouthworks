@@ -502,6 +502,8 @@ function Input({ className, type, ...props }) {
 __turbopack_context__.s([
     "appointmentService",
     ()=>appointmentService,
+    "dentistService",
+    ()=>dentistService,
     "inventoryService",
     ()=>inventoryService,
     "patientService",
@@ -522,6 +524,45 @@ const getSupabase = ()=>{
         throw new Error("Database service can only be used in client-side code");
     }
     return (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2d$client$2e$ts__$5b$app$2d$ssr$5d$__$28$ecmascript$29$__["getSupabaseClient"])();
+};
+const dentistService = {
+    async getAll () {
+        const { data, error } = await getSupabase().from("dentists").select("*").order("name", {
+            ascending: true
+        });
+        if (error) {
+            console.error("Supabase error fetching dentists:", error);
+            throw new Error(`Failed to fetch dentists: ${error.message}`);
+        }
+        return data;
+    },
+    async getById (id) {
+        const { data, error } = await getSupabase().from("dentists").select("*").eq("id", id).single();
+        if (error) throw error;
+        return data;
+    },
+    async create (dentist) {
+        const { data, error } = await getSupabase().from("dentists").insert([
+            dentist
+        ]).select().single();
+        if (error) {
+            console.error("Supabase error creating dentist:", error);
+            throw new Error(`Failed to create dentist: ${error.message}`);
+        }
+        return data;
+    },
+    async update (id, updates) {
+        const { data, error } = await getSupabase().from("dentists").update({
+            ...updates,
+            updated_at: new Date()
+        }).eq("id", id).select().single();
+        if (error) throw error;
+        return data;
+    },
+    async delete (id) {
+        const { error } = await getSupabase().from("dentists").delete().eq("id", id);
+        if (error) throw error;
+    }
 };
 const patientService = {
     async getAll () {

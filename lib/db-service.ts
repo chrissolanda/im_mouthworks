@@ -7,6 +7,49 @@ const getSupabase = () => {
   return getSupabaseClient()
 }
 
+// Dentists
+export const dentistService = {
+  async getAll() {
+    const { data, error } = await getSupabase().from("dentists").select("*").order("name", { ascending: true })
+    if (error) {
+      console.error("Supabase error fetching dentists:", error)
+      throw new Error(`Failed to fetch dentists: ${error.message}`)
+    }
+    return data
+  },
+
+  async getById(id: string) {
+    const { data, error } = await getSupabase().from("dentists").select("*").eq("id", id).single()
+    if (error) throw error
+    return data
+  },
+
+  async create(dentist: { name: string; email?: string; phone?: string; specialization?: string }) {
+    const { data, error } = await getSupabase().from("dentists").insert([dentist]).select().single()
+    if (error) {
+      console.error("Supabase error creating dentist:", error)
+      throw new Error(`Failed to create dentist: ${error.message}`)
+    }
+    return data
+  },
+
+  async update(id: string, updates: any) {
+    const { data, error } = await getSupabase()
+      .from("dentists")
+      .update({ ...updates, updated_at: new Date() })
+      .eq("id", id)
+      .select()
+      .single()
+    if (error) throw error
+    return data
+  },
+
+  async delete(id: string) {
+    const { error } = await getSupabase().from("dentists").delete().eq("id", id)
+    if (error) throw error
+  },
+}
+
 // Patients
 export const patientService = {
   async getAll() {

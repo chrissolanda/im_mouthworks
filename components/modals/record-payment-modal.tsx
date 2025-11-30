@@ -2,25 +2,48 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { X } from "lucide-react"
-import { mockPatients } from "@/components/data/mock-data"
+import { patientService } from "@/lib/db-service"
 
 interface RecordPaymentModalProps {
   onClose: () => void
   onSubmit: (data: any) => void
 }
 
+interface Patient {
+  id: string
+  name: string
+}
+
 export default function RecordPaymentModal({ onClose, onSubmit }: RecordPaymentModalProps) {
   const [formData, setFormData] = useState({
-    patientId: "",
+    patient_id: "",
     amount: "",
     method: "Cash",
     status: "paid",
     description: "",
   })
+  const [patients, setPatients] = useState<Patient[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadPatients()
+  }, [])
+
+  const loadPatients = async () => {
+    try {
+      setLoading(true)
+      const data = await patientService.getAll()
+      setPatients(data || [])
+    } catch (error) {
+      console.error("Error loading patients:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -29,13 +52,16 @@ export default function RecordPaymentModal({ onClose, onSubmit }: RecordPaymentM
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (formData.patientId && formData.amount && formData.description) {
+    if (formData.patient_id && formData.amount && formData.description) {
       onSubmit({
-        ...formData,
+        patient_id: formData.patient_id,
         amount: Number.parseFloat(formData.amount),
+        method: formData.method,
+        status: formData.status,
+        description: formData.description,
         date: new Date().toISOString().split("T")[0],
       })
-      setFormData({ patientId: "", amount: "", method: "Cash", status: "paid", description: "" })
+      setFormData({ patient_id: "", amount: "", method: "Cash", status: "paid", description: "" })
     }
   }
 
@@ -53,25 +79,29 @@ export default function RecordPaymentModal({ onClose, onSubmit }: RecordPaymentM
         {/* Form */}
         <form onSubmit={handleSubmit} className="p-6 space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Patient</label>
-            <select
-              name="patientId"
-              value={formData.patientId}
-              onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-border rounded-lg"
-              required
-            >
-              <option value="">Select patient...</option>
-              {mockPatients.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
+            <label className="text-sm font-medium text-foreground">Patient *</label>
+            {loading ? (
+              <div className="text-sm text-muted-foreground">Loading patients...</div>
+            ) : (
+              <select
+                name="patient_id"
+                value={formData.patient_id}
+                onChange={handleInputChange}
+                className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
+                required
+              >
+                <option value="">Select patient...</option>
+                {patients.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Amount ($)</label>
+            <label className="text-sm font-medium text-foreground">Amount ($) *</label>
             <Input
               name="amount"
               type="number"
@@ -90,7 +120,7 @@ export default function RecordPaymentModal({ onClose, onSubmit }: RecordPaymentM
               name="method"
               value={formData.method}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-border rounded-lg"
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
             >
               <option>Cash</option>
               <option>Bank Transfer</option>
@@ -106,7 +136,7 @@ export default function RecordPaymentModal({ onClose, onSubmit }: RecordPaymentM
               name="status"
               value={formData.status}
               onChange={handleInputChange}
-              className="w-full px-3 py-2 border border-border rounded-lg"
+              className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground"
             >
               <option value="paid">Paid</option>
               <option value="partial">Partial</option>
@@ -115,13 +145,13 @@ export default function RecordPaymentModal({ onClose, onSubmit }: RecordPaymentM
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Description</label>
+            <label className="text-sm font-medium text-foreground">Description *</label>
             <textarea
               name="description"
               value={formData.description}
               onChange={handleInputChange}
               placeholder="e.g., Cleaning - Dec 5, 2024"
-              className="w-full p-2 border border-border rounded-lg text-sm resize-none"
+              className="w-full p-2 border border-border rounded-lg text-sm resize-none bg-background text-foreground"
               rows={2}
               required
             />
@@ -131,7 +161,7 @@ export default function RecordPaymentModal({ onClose, onSubmit }: RecordPaymentM
             <Button type="button" onClick={onClose} variant="outline" className="flex-1 bg-transparent">
               Cancel
             </Button>
-            <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground">
+            <Button type="submit" className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground" disabled={loading}>
               Record Payment
             </Button>
           </div>
