@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
 import MainLayout from "@/components/layout/main-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -16,12 +17,15 @@ import {
   Eye,
   ChevronLeft,
   ChevronRight,
+  DollarSign,
 } from "lucide-react"
 import { appointmentService } from "@/lib/db-service"
+import { paymentService, treatmentService } from "@/lib/db-service"
 import AppointmentApprovalModal from "@/components/modals/appointment-approval-modal"
 
 export default function DentistSchedule() {
   const { user } = useAuth()
+  const router = useRouter()
   const [appointments, setAppointments] = useState<any[]>([])
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [showApprovalModal, setShowApprovalModal] = useState(false)
@@ -53,14 +57,72 @@ export default function DentistSchedule() {
     { label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" />, href: "/dentist/dashboard" },
     { label: "My Schedule", icon: <Calendar className="w-5 h-5" />, href: "/dentist/schedule" },
     { label: "Treatments", icon: <Tooth className="w-5 h-5" />, href: "/dentist/treatments" },
+    { label: "Earnings", icon: <DollarSign className="w-5 h-5" />, href: "/dentist/earnings" },
     { label: "Reports", icon: <BarChart3 className="w-5 h-5" />, href: "/dentist/reports" },
   ]
 
   const handleApproveAppointment = async (id: string) => {
     try {
+      // Mark as confirmed first
       await appointmentService.changeStatus(id, "confirmed")
       setAppointments(appointments.map((a) => (a.id === id ? { ...a, status: "confirmed" } : a)))
+
+      // Immediately mark as completed and create payment (per request)
+      try {
+        await appointmentService.changeStatus(id, "completed")
+        setAppointments((prev) => prev.map((a) => (a.id === id ? { ...a, status: "completed" } : a)))
+
+        const apt = appointments.find((a) => a.id === id)
+        if (apt) {
+          // determine amount: prefer linked treatment price, then match by service name, else fallback
+          let amount = 0
+          if (apt.treatment_id) {
+            try {
+              const treatment = await treatmentService.getById(apt.treatment_id)
+              amount = treatment?.price || 0
+            } catch (e) {
+              console.warn("Could not resolve treatment by id for payment:", e)
+            }
+          }
+
+          if (!amount) {
+            try {
+              const treatments = await treatmentService.getAll()
+              const matched = (treatments || []).find((t: any) => t.name === (apt.service || apt.treatment))
+              amount = matched?.price || apt.amount || 0
+            } catch (e) {
+              console.warn("Could not lookup treatments for amount resolution:", e)
+            }
+          }
+
+          const paymentPayload: any = {
+            patient_id: apt.patient_id,
+            appointment_id: apt.id,
+            dentist_id: apt.dentist_id || user?.id,
+            amount: amount || 0,
+            method: "cash",
+            status: "paid",
+            description: `Payment for ${apt.service || "treatment"}`,
+            date: new Date().toISOString().split("T")[0],
+          }
+
+          try {
+            await paymentService.create(paymentPayload)
+          } catch (e) {
+            console.error("Error creating payment record after approve:", e)
+          }
+        }
+      } catch (e) {
+        console.error("Error completing + charging appointment after approve:", e)
+      }
+
       setShowApprovalModal(false)
+      // Navigate to dentist's schedule (My Appointments)
+      try {
+        router.push("/dentist/schedule")
+      } catch (e) {
+        console.warn("Navigation to schedule failed:", e)
+      }
     } catch (error) {
       console.error("Error approving appointment:", error)
     }
@@ -71,6 +133,12 @@ export default function DentistSchedule() {
       await appointmentService.update(id, { status: "rejected", notes: reason })
       setAppointments(appointments.map((a) => (a.id === id ? { ...a, status: "rejected", notes: reason } : a)))
       setShowApprovalModal(false)
+      // Navigate to dentist's schedule (My Appointments)
+      try {
+        router.push("/dentist/schedule")
+      } catch (e) {
+        console.warn("Navigation to schedule failed:", e)
+      }
     } catch (error) {
       console.error("Error rejecting appointment:", error)
     }
@@ -80,6 +148,51 @@ export default function DentistSchedule() {
     try {
       await appointmentService.changeStatus(id, "completed")
       setAppointments(appointments.map((a) => (a.id === id ? { ...a, status: "completed" } : a)))
+      // create a payment record for the completed appointment
+      try {
+        const apt = appointments.find((a) => a.id === id)
+        if (apt) {
+          // determine amount: prefer linked treatment price, then match by service name, else fallback
+          let amount = 0
+          if (apt.treatment_id) {
+            try {
+              const treatment = await treatmentService.getById(apt.treatment_id)
+              amount = treatment?.price || 0
+            } catch (e) {
+              console.warn("Could not resolve treatment by id for payment:", e)
+            }
+          }
+
+          if (!amount) {
+            try {
+              const treatments = await treatmentService.getAll()
+              const matched = (treatments || []).find((t: any) => t.name === (apt.service || apt.treatment))
+              amount = matched?.price || apt.amount || 0
+            } catch (e) {
+              console.warn("Could not lookup treatments for amount resolution:", e)
+            }
+          }
+
+          const paymentPayload: any = {
+            patient_id: apt.patient_id,
+            appointment_id: apt.id,
+            dentist_id: apt.dentist_id || user?.id,
+            amount: amount || 0,
+            method: "cash",
+            status: "paid",
+            description: `Payment for ${apt.service || "treatment"}`,
+            date: new Date().toISOString().split("T")[0],
+          }
+
+          try {
+            await paymentService.create(paymentPayload)
+          } catch (e) {
+            console.error("Error creating payment record:", e)
+          }
+        }
+      } catch (e) {
+        console.error("Error while creating payment after completion:", e)
+      }
     } catch (error) {
       console.error("Error completing appointment:", error)
     }

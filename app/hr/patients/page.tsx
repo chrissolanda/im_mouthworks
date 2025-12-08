@@ -22,8 +22,10 @@ import {
   Search,
 } from "lucide-react"
 import { patientService } from "@/lib/db-service"
+import { authService } from "@/lib/auth-service"
 import AddPatientModal from "@/components/modals/add-patient-modal"
 import ViewPatientModal from "@/components/modals/view-patient-modal"
+import EditPatientModal from "@/components/modals/edit-patient-modal"
 
 interface Patient {
   id: string
@@ -41,6 +43,7 @@ export default function HRPatients() {
   const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
   const [showViewModal, setShowViewModal] = useState(false)
+  const [showEditModal, setShowEditModal] = useState(false)
   const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null)
   const [searchTerm, setSearchTerm] = useState("")
 
@@ -104,6 +107,31 @@ export default function HRPatients() {
   const handleViewPatient = (patient: Patient) => {
     setSelectedPatient(patient)
     setShowViewModal(true)
+  }
+
+  const handleEditPatient = (patient: Patient) => {
+    setSelectedPatient(patient)
+    setShowEditModal(true)
+  }
+
+  const handleEditSubmit = async (submitData: any) => {
+    try {
+      if (submitData.type === "profile") {
+        // Update patient profile
+        await patientService.update(selectedPatient!.id, submitData.data)
+        
+        // Update the patient in the list
+        setPatients(
+          patients.map((p) => (p.id === selectedPatient!.id ? { ...p, ...submitData.data } : p))
+        )
+      } else if (submitData.type === "password") {
+        // Update password
+        await authService.updatePassword(submitData.data.email, submitData.data.newPassword)
+      }
+    } catch (error) {
+      console.error("[v0] Error updating patient:", error)
+      throw error
+    }
   }
 
   const filteredPatients = patients.filter(
@@ -196,7 +224,10 @@ export default function HRPatients() {
                               >
                                 <Eye className="w-4 h-4" />
                               </button>
-                              <button className="p-1.5 hover:bg-muted rounded-lg transition-colors text-primary">
+                              <button
+                                onClick={() => handleEditPatient(patient)}
+                                className="p-1.5 hover:bg-muted rounded-lg transition-colors text-primary"
+                              >
                                 <Edit className="w-4 h-4" />
                               </button>
                               <button
@@ -222,6 +253,10 @@ export default function HRPatients() {
 
       {showViewModal && selectedPatient && (
         <ViewPatientModal patient={selectedPatient} onClose={() => setShowViewModal(false)} />
+      )}
+
+      {showEditModal && selectedPatient && (
+        <EditPatientModal patient={selectedPatient} onClose={() => setShowEditModal(false)} onSubmit={handleEditSubmit} />
       )}
     </MainLayout>
   )

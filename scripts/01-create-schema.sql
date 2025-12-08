@@ -119,7 +119,8 @@ CREATE TABLE IF NOT EXISTS inventory (
 CREATE TABLE IF NOT EXISTS supply_requests (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   item_id UUID NOT NULL REFERENCES inventory(id) ON DELETE CASCADE,
-  staff_id UUID NOT NULL REFERENCES staff(id),
+  staff_id UUID REFERENCES staff(id) ON DELETE CASCADE,
+  dentist_id UUID REFERENCES dentists(id) ON DELETE CASCADE,
   quantity INTEGER NOT NULL,
   status VARCHAR(50) NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'approved', 'rejected', 'received')),
   requested_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,

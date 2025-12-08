@@ -19,6 +19,8 @@ interface AuthContextType {
   user: User | null
   loading: boolean
   login: (email: string, password: string) => Promise<void>
+  patientAutoApproved?: boolean
+  register: (email: string, password: string, name: string, phone?: string) => Promise<any>
   logout: () => void
   isAuthenticated: boolean
   showPatientRegistration: boolean
@@ -31,6 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [showPatientRegistration, setShowPatientRegistration] = useState(false)
+  const [patientAutoApproved, setPatientAutoApproved] = useState(false)
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -42,14 +45,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         } = await supabase.auth.getUser()
 
         if (authUser && !error) {
+          const emailStr = authUser.email || ""
+          const roleFromMeta = authUser.user_metadata?.role || "patient"
+          const isGmail = emailStr.toLowerCase().endsWith("@gmail.com")
           setUser({
             id: authUser.id,
-            email: authUser.email || "",
-            name: authUser.user_metadata?.name || authUser.email || "",
-            role: authUser.user_metadata?.role || "patient",
+            email: emailStr,
+            name: authUser.user_metadata?.name || emailStr || "",
+            role: roleFromMeta,
             phone: authUser.user_metadata?.phone,
             specialization: authUser.user_metadata?.specialization,
           })
+          // For Gmail patients, do not show registration modal; mark as auto-approved
+          if (roleFromMeta === "patient" && isGmail) {
+            setShowPatientRegistration(false)
+            setPatientAutoApproved(true)
+            // Ensure a patient row exists for Gmail users so booking and payments work
+            try {
+              const { patientService } = await import("./db-service")
+              const existingPatient = await patientService.getByEmail(emailStr)
+              if (!existingPatient) {
+                await patientService.create({
+                  user_id: authUser.id,
+                  name: authUser.user_metadata?.name || emailStr,
+                  email: emailStr,
+                  phone: authUser.user_metadata?.phone || null,
+                  dob: null,
+                  gender: null,
+                  address: null,
+                })
+              }
+            } catch (err) {
+              console.warn("[v0] Could not auto-create patient record for Gmail user:", err)
+            }
+          }
         }
       } catch (error) {
         console.error("[v0] Auth initialization error:", error)
@@ -61,14 +90,128 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const login = async (email: string, password: string) => {
+    // First try to authenticate against the `auth_users` table (registered users)
+    try {
+      const supabase = getSupabaseClient()
+      const { data: authUser, error } = await supabase.from("auth_users").select("*").eq("email", email).maybeSingle()
+      if (error) {
+        console.warn("[v0] Supabase error checking auth_users:", error)
+      }
+      if (authUser) {
+        // simple password check (password_hash stores the password in this demo app)
+        if (authUser.password_hash === password) {
+          const userObj: User = {
+            id: authUser.id,
+            email: authUser.email,
+            name: authUser.name || authUser.email,
+            role: authUser.role as UserRole,
+            phone: authUser.phone || undefined,
+            specialization: authUser.specialization || undefined,
+          }
+          setUser(userObj)
+          localStorage.setItem("user", JSON.stringify(userObj))
+          // If this is a patient and they don't have a patients row, prompt for profile
+          // but if they're signing in with Gmail, auto-approve and do not show modal
+          const isGmail = (userObj.email || "").toLowerCase().endsWith("@gmail.com")
+          if (userObj.role === "patient") {
+            if (isGmail) {
+              setShowPatientRegistration(false)
+              setPatientAutoApproved(true)
+              // Ensure a patient row exists for Gmail logins
+              try {
+                const { patientService } = await import("./db-service")
+                const existingPatient = await patientService.getByEmail(userObj.email)
+                if (!existingPatient) {
+                  await patientService.create({
+                    user_id: userObj.id,
+                    name: userObj.name || userObj.email,
+                    email: userObj.email,
+                    phone: userObj.phone || null,
+                    dob: null,
+                    gender: null,
+                    address: null,
+                  })
+                }
+              } catch (err) {
+                console.warn("[v0] Could not auto-create patient record after login:", err)
+              }
+            } else {
+              setShowPatientRegistration(true)
+              setPatientAutoApproved(false)
+            }
+          }
+          return
+        } else {
+          throw new Error("Invalid credentials")
+        }
+      }
+
+    } catch (err) {
+      console.warn("[v0] Error authenticating against auth_users:", err)
+    }
+
+    // If no auth_users match, try Supabase Auth sign-in (for accounts created via Supabase)
+    try {
+      const supabase = getSupabaseClient()
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password })
+      if (error) {
+        // Not authenticated via Supabase - proceed to mock users handling below
+        console.warn("[v0] Supabase auth signIn error:", error)
+      } else if (data && data.user) {
+        const authUser = data.user
+        const roleFromMeta = (authUser.user_metadata as any)?.role || "patient"
+        const userObj: User = {
+          id: authUser.id,
+          email: authUser.email || email,
+          name: (authUser.user_metadata as any)?.name || authUser.email || email,
+          role: roleFromMeta as UserRole,
+          phone: (authUser.user_metadata as any)?.phone || undefined,
+          specialization: (authUser.user_metadata as any)?.specialization || undefined,
+        }
+        setUser(userObj)
+        localStorage.setItem("user", JSON.stringify(userObj))
+
+        // For patient users, handle registration modal and auto-approval
+        if (userObj.role === "patient") {
+          // Gmail patients auto-approve
+          const isGmail = (userObj.email || "").toLowerCase().endsWith("@gmail.com")
+          if (isGmail) {
+            setShowPatientRegistration(false)
+            setPatientAutoApproved(true)
+          } else {
+            // Non-Gmail patients created via Supabase Auth: don't show registration modal
+            // (they already have an auth account), just set auto-approved
+            setShowPatientRegistration(false)
+            setPatientAutoApproved(true)
+          }
+          
+          // Ensure patient record exists in database
+          try {
+            const { patientService } = await import("./db-service")
+            const existingPatient = await patientService.getByEmail(userObj.email)
+            if (!existingPatient) {
+              await patientService.create({
+                user_id: userObj.id,
+                name: userObj.name || userObj.email,
+                email: userObj.email,
+                phone: userObj.phone || null,
+                dob: null,
+                gender: null,
+                address: null,
+              })
+            }
+          } catch (err) {
+            console.warn("[v0] Could not auto-create patient record after supabase login:", err)
+          }
+        }
+
+        return
+      }
+    } catch (err) {
+      console.warn("[v0] Error authenticating via Supabase auth:", err)
+    }
+
     const mockUsers: Record<string, User> = {
-      "patient@example.com": {
-        id: "f47ac10b-58cc-4372-a567-0e02b2c3d479",
-        email: "patient@example.com",
-        name: "John Patient",
-        role: "patient",
-        phone: "+1 234-567-8900",
-      },
       "dentist@example.com": {
         id: "7a8c5e19-d3f2-4b7a-8c6f-5e2d9a1b3c47",
         email: "dentist@example.com",
@@ -123,13 +266,68 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (mockUser) {
       setUser(mockUser)
       localStorage.setItem("user", JSON.stringify(mockUser))
-      
-      // Show registration modal for new patients
-      if (mockUser.role === "patient") {
-        setShowPatientRegistration(true)
-      }
+      return
     } else {
       throw new Error("Invalid credentials")
+    }
+  }
+
+  const register = async (email: string, password: string, name: string, phone?: string) => {
+    const supabase = getSupabaseClient()
+    // Check existing auth_users
+    const { data: existing, error: getErr } = await supabase.from("auth_users").select("*").eq("email", email).maybeSingle()
+    if (getErr) {
+      console.error("[v0] Error checking existing auth user:", getErr)
+      throw new Error("Registration failed")
+    }
+    if (existing) {
+      // Return a structured result instead of throwing so callers can handle it gracefully
+      return { status: "exists", user: existing }
+    }
+
+    try {
+      // Create auth_users entry (password_hash stores password in this demo)
+      const { data: createdAuth, error: insertErr } = await supabase
+        .from("auth_users")
+        .insert([
+          { email, password_hash: password, name, role: "patient", phone: phone || null },
+        ])
+        .select()
+        .single()
+
+      if (insertErr || !createdAuth) {
+        console.error("[v0] Error creating auth user:", insertErr)
+        throw new Error("Registration failed")
+      }
+
+      // Create patients row linked to auth_users.id
+      const { data: patientRow, error: patientErr } = await supabase
+        .from("patients")
+        .insert([
+          { user_id: createdAuth.id, name, email, phone: phone || null },
+        ])
+        .select()
+        .single()
+
+      if (patientErr) {
+        console.warn("[v0] Warning creating patient row:", patientErr)
+      }
+
+      const userObj: User = {
+        id: createdAuth.id,
+        email: createdAuth.email,
+        name: createdAuth.name || name,
+        role: "patient",
+        phone: createdAuth.phone || phone || undefined,
+      }
+      setUser(userObj)
+      localStorage.setItem("user", JSON.stringify(userObj))
+      setShowPatientRegistration(false)
+      return { status: "created", user: userObj }
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : String(err)
+      console.error("[v0] Registration error:", errorMsg)
+      throw err
     }
   }
 
@@ -165,8 +363,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         address: null,
       })
 
+      // Ensure an auth_users row exists for this email
+      try {
+        const supabase = getSupabaseClient()
+        const { data: existingAuthUser, error: authErr } = await supabase.from("auth_users").select("*").eq("email", user.email).maybeSingle()
+        if (authErr) {
+          console.warn("[v0] Warning checking auth_users:", authErr)
+        }
+        if (!existingAuthUser) {
+          const { error: insertErr } = await supabase.from("auth_users").insert([
+            {
+              email: user.email,
+              name: name,
+              role: "patient",
+              phone: phone || null,
+            },
+          ])
+          if (insertErr) {
+            console.warn("[v0] Warning inserting auth_users record:", insertErr)
+          }
+        }
+      } catch (err) {
+        console.warn("[v0] Warning ensuring auth_users record:", err)
+      }
+
       if (newPatient) {
-        // Update user state with the new patient ID if needed
+        // Update user state with the new patient info
         const updatedUser = { ...user, name: name, phone: phone }
         setUser(updatedUser)
         localStorage.setItem("user", JSON.stringify(updatedUser))
@@ -185,6 +407,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         user,
         loading,
         login,
+        register,
         logout,
         isAuthenticated: !!user,
         showPatientRegistration,

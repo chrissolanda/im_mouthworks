@@ -5,6 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/lib/auth-context"
+import { authService } from "@/lib/auth-service"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -15,8 +16,13 @@ export default function LoginScreen() {
   const [password, setPassword] = useState("")
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
-  const { login } = useAuth()
+  const { login, register } = useAuth()
   const router = useRouter()
+  const [showRegister, setShowRegister] = useState(false)
+  const [regName, setRegName] = useState("")
+  const [regPhone, setRegPhone] = useState("")
+  const [regRole, setRegRole] = useState<"patient" | "dentist" | "hr">("patient")
+  const [regSpecialization, setRegSpecialization] = useState("")
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -44,8 +50,68 @@ export default function LoginScreen() {
     }
   }
 
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setError("")
+    setLoading(true)
+    try {
+      let res: any
+      
+      if (regRole === "patient") {
+        // Patient registration via auth-context
+        res = await register(email, password, regName, regPhone || undefined)
+      } else if (regRole === "dentist") {
+        // Dentist registration via Supabase Auth with specialization in metadata
+        const supabase = (await import("@/lib/supabase-client")).getSupabaseClient()
+        res = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              name: regName,
+              role: "dentist",
+              phone: regPhone || null,
+              specialization: regSpecialization || null,
+            },
+          },
+        })
+        if (res.error) throw res.error
+      } else {
+        // HR registration via Supabase Auth
+        res = await authService.signUp(email, password, regName, regRole)
+      }
+
+      if (res && res.status === "exists") {
+        setError("User with this email already exists. Please sign in instead.")
+        setShowRegister(false)
+      } else {
+        // After registering, log in the user
+        try {
+          await login(email, password)
+          const userStr = localStorage.getItem("user")
+          if (userStr) {
+            const user = JSON.parse(userStr)
+            if (user.role === "patient") {
+              router.push("/patient/dashboard")
+            } else if (user.role === "dentist") {
+              router.push("/dentist/dashboard")
+            } else if (user.role === "hr") {
+              router.push("/hr/dashboard")
+            }
+          }
+        } catch (loginErr) {
+          setError("Account created, but auto-login failed. Please sign in manually.")
+          setShowRegister(false)
+        }
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Registration failed")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const demoCredentials = [
-    { email: "patient@example.com", role: "Patient" },
     { email: "dentist@example.com", role: "Dentist" },
     { email: "hr@example.com", role: "HR/Admin" },
     { email: "sarah.smith@dental.com", role: "Dentist" },
@@ -76,7 +142,7 @@ export default function LoginScreen() {
             <CardDescription>Sign in to your account</CardDescription>
           </CardHeader>
           <CardContent className="pt-6">
-            <form onSubmit={handleLogin} className="space-y-4">
+            <form onSubmit={showRegister ? handleRegister : handleLogin} className="space-y-4">
               {error && (
                 <div className="p-3 bg-destructive/10 border border-destructive/30 rounded-lg flex gap-2">
                   <AlertCircle className="w-4 h-4 text-destructive flex-shrink-0 mt-0.5" />
@@ -108,14 +174,99 @@ export default function LoginScreen() {
                 />
               </div>
 
-              <Button
-                type="submit"
-                disabled={loading || !email || !password}
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2 h-10"
-              >
-                {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-                {loading ? "Signing in..." : "Sign In"}
-              </Button>
+              {showRegister && (
+                <>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Role</label>
+                    <select
+                      value={regRole}
+                      onChange={(e) => setRegRole(e.target.value as "patient" | "dentist" | "hr")}
+                      disabled={loading}
+                      className="w-full px-3 py-2 border border-border rounded-lg bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                    >
+                      <option value="patient">Patient</option>
+                      <option value="dentist">Dentist</option>
+                      <option value="hr">HR/Admin</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Full Name</label>
+                    <Input
+                      type="text"
+                      placeholder="Your full name"
+                      value={regName}
+                      onChange={(e) => setRegName(e.target.value)}
+                      disabled={loading}
+                      className="border-border focus:ring-primary"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-foreground">Phone (optional)</label>
+                    <Input
+                      type="tel"
+                      placeholder="+1 234-567-8900"
+                      value={regPhone}
+                      onChange={(e) => setRegPhone(e.target.value)}
+                      disabled={loading}
+                      className="border-border focus:ring-primary"
+                    />
+                  </div>
+
+                  {regRole === "dentist" && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-foreground">Specialization (optional)</label>
+                      <Input
+                        type="text"
+                        placeholder="e.g., General Dentistry"
+                        value={regSpecialization}
+                        onChange={(e) => setRegSpecialization(e.target.value)}
+                        disabled={loading}
+                        className="border-border focus:ring-primary"
+                      />
+                    </div>
+                  )}
+                </>
+              )}
+
+              <div className="flex gap-2">
+                <Button
+                  type="submit"
+                  disabled={loading || !email || !password || (showRegister && !regName)}
+                  className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold py-2 h-10"
+                >
+                  {loading && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                  {loading ? (showRegister ? "Registering..." : "Signing in...") : showRegister ? "Register" : "Sign In"}
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                      if (showRegister) {
+                        // When in registration mode, Back should go to dashboard
+                        try {
+                          router.replace("/patient/dashboard")
+                        } catch (e) {
+                          try {
+                            window.location.href = "/patient/dashboard"
+                          } catch (err) {
+                            setShowRegister(false)
+                          }
+                        }
+                        setTimeout(() => {
+                          if (typeof window !== "undefined" && window.location.pathname !== "/patient/dashboard") {
+                            window.location.href = "/patient/dashboard"
+                          }
+                        }, 500)
+                      } else {
+                        setShowRegister(true)
+                      }
+                    }}
+                  className="px-4"
+                >
+                  {showRegister ? "Back" : "Register"}
+                </Button>
+              </div>
             </form>
 
             {/* Demo Credentials */}

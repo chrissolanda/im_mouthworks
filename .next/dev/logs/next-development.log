@@ -1,13 +1,262 @@
-[00:00:00.713] Server  LOG      ✓ Ready in 453ms
-[00:00:03.242] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:03.243] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:03.308] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:00:40.019] Browser LOG     [v0] Submitting appointment to dentist: Dr. Emily Johnson with data: {"date":"2025-12-06","dentist_id":"63d250c7-d355-4eaa-b99e-d502b7db5dfb","notes":"","patient_id":"a5adc3d7-c921-4286-88d3-5cd29ddaa004","service":"Check-up","status":"pending","time":"10:00"}
-[00:01:09.446] Browser ERROR   [v0] Error saving patient profile: Patient with name 'KENT' already exists. Please use a different name.
-[00:01:09.446] Browser ERROR   [v0] Error in patient registration: {}
-[00:01:40.227] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[00:01:59.071] Browser ERROR   [v0] Error saving patient profile: Patient with name 'KENT' already exists. Please use a different name.
-[00:01:59.071] Browser ERROR   [v0] Error in patient registration: {}
-[00:02:53.001] Server  LOG      ✓ Compiled in 65ms
-[00:03:00.221] Server  LOG      ✓ Compiled in 113ms
-[00:03:13.511] Server  LOG      ✓ Compiled in 82ms
+[00:00:03.613] Server  LOG      ✓ Ready in 2.3s
+[00:00:18.083] Server  LOG      ○ Compiling / ...
+[00:00:32.249] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:08:51.646] Server  LOG      ✓ Compiled in 108ms
+[00:08:57.913] Server  LOG      ✓ Compiled in 79ms
+[00:09:20.227] Server  LOG      ✓ Compiled in 241ms
+[00:10:04.774] Server  LOG      ✓ Compiled in 276ms
+[00:12:12.661] Browser ERROR   uncaughtError: ReferenceError: formatCurrency is not defined
+[00:13:26.892] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\.next\dev\server\chunks\ssr\[root-of-the-server]__648cc7b9._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[00:13:26.897] Server  ERROR    ⨯ ReferenceError: formatCurrency is not defined
+[00:13:27.964] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:13:28.139] Browser ERROR   uncaughtError: ReferenceError: formatCurrency is not defined
+[00:13:49.291] Server  WARN     ⚠ Fast Refresh had to perform a full reload due to a runtime error.
+[00:13:49.510] Server  LOG      ✓ Compiled in 70ms
+[00:13:49.893] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:22:41.495] Server  LOG      ✓ Compiled in 71ms
+[00:25:04.437] Server  LOG      ✓ Compiled in 67ms
+[00:39:39.812] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:41:12.537] Server  LOG      ✓ Compiled in 72ms
+[00:41:37.882] Server  WARN     ⚠ Fast Refresh had to perform a full reload when ./im_mouthworks/im_mouthworks/lib/auth-context.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[00:41:38.737] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:51:30.667] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:55:26.076] Server  LOG      ✓ Compiled in 69ms
+[00:55:39.546] Server  LOG      ✓ Compiled in 66ms
+[01:04:13.121] Server  LOG      ✓ Compiled in 388ms
+[01:04:23.645] Server  LOG      ✓ Compiled in 66ms
+[01:04:33.253] Server  LOG      ✓ Compiled in 59ms
+[01:04:42.881] Server  LOG      ✓ Compiled in 61ms
+[01:05:02.571] Server  LOG      ✓ Compiled in 71ms
+[01:05:09.787] Server  LOG      ✓ Compiled in 74ms
+[01:05:36.435] Server  LOG      ✓ Compiled in 62ms
+[01:11:22.727] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\.next\dev\server\chunks\f7ea7_2b1f94ba._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:22.729] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\.next\dev\server\chunks\[root-of-the-server]__cf4771ac._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:22.771] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:22.795] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\.next\dev\server\chunks\f7ea7_next_9abaaf68._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:22.802] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:22.814] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:22.817] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:22.818] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:22.822] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:22.826] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:22.832] Server  ERROR   Error in update-password API: Error: supabaseUrl is required.
+[01:11:22.944] Browser ERROR   [v0] Error updating patient: {}
+[01:11:29.775] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\.next\dev\server\chunks\f7ea7_2b1f94ba._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:29.775] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\.next\dev\server\chunks\[root-of-the-server]__cf4771ac._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:29.777] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:29.778] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\.next\dev\server\chunks\f7ea7_next_9abaaf68._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:29.779] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:29.780] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:29.780] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:29.781] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:29.782] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:29.784] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:29.785] Server  ERROR   Error in update-password API: Error: supabaseUrl is required.
+[01:11:29.892] Browser ERROR   [v0] Error updating patient: {}
+[01:11:30.442] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\.next\dev\server\chunks\f7ea7_2b1f94ba._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:30.444] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\.next\dev\server\chunks\[root-of-the-server]__cf4771ac._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:30.446] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:30.447] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\.next\dev\server\chunks\f7ea7_next_9abaaf68._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:30.451] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:30.452] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:30.454] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:30.456] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:30.458] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:30.460] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:30.465] Server  ERROR   Error in update-password API: Error: supabaseUrl is required.
+[01:11:30.579] Browser ERROR   [v0] Error updating patient: {}
+[01:11:38.043] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\.next\dev\server\chunks\f7ea7_2b1f94ba._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:38.044] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\.next\dev\server\chunks\[root-of-the-server]__cf4771ac._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:38.046] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:38.047] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\.next\dev\server\chunks\f7ea7_next_9abaaf68._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:38.048] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:38.050] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:38.052] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:38.053] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:38.055] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:38.057] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:38.058] Server  ERROR   Error in update-password API: Error: supabaseUrl is required.
+[01:11:38.166] Browser ERROR   [v0] Error updating patient: {}
+[01:11:38.902] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\.next\dev\server\chunks\f7ea7_2b1f94ba._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:38.903] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\.next\dev\server\chunks\[root-of-the-server]__cf4771ac._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:38.905] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:38.905] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\.next\dev\server\chunks\f7ea7_next_9abaaf68._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:38.906] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:38.907] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:38.908] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:38.908] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:38.910] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:38.911] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:38.911] Server  ERROR   Error in update-password API: Error: supabaseUrl is required.
+[01:11:39.020] Browser ERROR   [v0] Error updating patient: {}
+[01:11:47.016] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\.next\dev\server\chunks\f7ea7_2b1f94ba._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:47.017] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\.next\dev\server\chunks\[root-of-the-server]__cf4771ac._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:47.019] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:47.020] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\.next\dev\server\chunks\f7ea7_next_9abaaf68._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:47.020] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:47.021] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:47.021] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:47.022] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:47.024] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:47.025] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:47.026] Server  ERROR   Error in update-password API: Error: supabaseUrl is required.
+[01:11:47.135] Browser ERROR   [v0] Error updating patient: {}
+[01:11:54.328] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\.next\dev\server\chunks\f7ea7_2b1f94ba._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:54.329] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\.next\dev\server\chunks\[root-of-the-server]__cf4771ac._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:54.331] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\compiled\next-server\app-route-turbo.runtime.dev.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:54.332] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\.next\dev\server\chunks\f7ea7_next_9abaaf68._.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:54.332] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\base-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:54.334] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\next-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:54.335] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\dev\next-dev-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:54.337] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\trace\trace.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:54.338] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\lib\router-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:54.339] Server  ERROR   C:\Users\laure\im_mouthworks\im_mouthworks\node_modules\next\dist\server\lib\start-server.js: Invalid source map. Only conformant source maps can be used to find the original code. Cause: Error: sourceMapURL could not be parsed
+[01:11:54.340] Server  ERROR   Error in update-password API: Error: supabaseUrl is required.
+[01:11:54.451] Browser ERROR   [v0] Error updating patient: {}
+[01:17:37.156] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:18:02.930] Server  ERROR   Missing SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_URL
+[01:18:03.034] Browser ERROR   [v0] Error updating patient: {}
+[01:18:04.559] Server  ERROR   Missing SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_URL
+[01:18:04.668] Browser ERROR   [v0] Error updating patient: {}
+[01:20:13.970] Server  LOG      ✓ Compiled in 223ms
+[01:22:19.581] Server  ERROR   Missing SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_URL
+[01:24:14.017] Server  ERROR   Missing SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_URL
+[01:27:21.632] Server  WARN     ⚠ Fast Refresh had to perform a full reload when ./im_mouthworks/im_mouthworks/lib/auth-context.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[01:27:21.639] Server  LOG      ✓ Compiled in 349ms
+[01:27:26.090] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:49:34.425] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[01:49:36.381] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[01:49:37.745] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[01:49:38.861] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[01:49:40.299] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[01:49:47.051] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[01:50:43.821] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[01:50:45.258] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[01:52:22.470] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[01:53:32.874] Server  LOG      ✓ Compiled in 466ms
+[01:54:07.984] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[01:54:17.451] Server  WARN     ⚠ Fast Refresh had to perform a full reload when ./im_mouthworks/im_mouthworks/lib/auth-context.tsx changed. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+[01:54:17.472] Server  LOG      ✓ Compiled in 204ms
+[01:54:19.313] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[01:59:04.752] Server  LOG      ✓ Compiled in 92ms
+[01:59:41.170] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[02:00:50.224] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[02:01:33.209] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[02:03:20.870] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:04:56.892] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:05:01.025] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[02:05:30.398] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[02:09:18.591] Server  LOG      ✓ Compiled in 124ms
+[02:09:35.474] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:12:55.601] Server  LOG      ✓ Compiled in 114ms
+[02:13:18.746] Server  LOG      ✓ Compiled in 68ms
+[02:13:50.236] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[02:14:05.227] Browser ERROR   [v0] Error submitting supply request: {"code":"PGRST204","details":null,"hint":null,"message":"Could not find the 'inventory_id' column of 'supply_requests' in the schema cache"}
+[02:14:32.695] Server  LOG      ✓ Compiled in 66ms
+[02:14:38.650] Server  LOG      ✓ Compiled in 59ms
+[02:14:46.570] Server  LOG      ✓ Compiled in 56ms
+[02:15:06.271] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:15:17.482] Browser ERROR   [v0] Error submitting supply request: {"code":"22P02","details":null,"hint":null,"message":"invalid input syntax for type uuid: \"\""}
+[02:15:23.536] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:15:34.401] Browser ERROR   [v0] Error submitting supply request: {"code":"22P02","details":null,"hint":null,"message":"invalid input syntax for type uuid: \"\""}
+[02:16:01.843] Server  LOG      ✓ Compiled in 60ms
+[02:16:09.176] Server  LOG      ✓ Compiled in 60ms
+[02:16:48.017] Server  LOG      ✓ Compiled in 108ms
+[02:16:58.611] Server  LOG      ✓ Compiled in 68ms
+[02:17:36.615] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:17:41.508] Browser LOG     [v0] Submitting supply request: {"dentist_id":"","item_id":"fb4878fa-b4da-43d7-b1c9-c7192fdb5e09","quantity":1,"status":"pending"}
+[02:17:46.516] Browser ERROR   [v0] Supabase error creating supply request: {"code":"PGRST200","details":"Searched for a foreign key relationship between 'supply_requests' and 'dentists' in the schema 'public', but no matches were found.","hint":null,"message":"Could not find a relationship between 'supply_requests' and 'dentists' in the schema cache"}
+[02:17:46.516] Browser ERROR   [v0] Exception in supplyRequestService.create: {}
+[02:17:46.516] Browser ERROR   [v0] Error submitting supply request: {}
+[02:17:46.516] Browser ERROR   [v0] Error details: Failed to create supply request: Could not find a relationship between 'supply_requests' and 'dentists' in the schema cache
+[02:18:49.279] Server  LOG      ✓ Compiled in 248ms
+[02:20:26.500] Browser LOG     [v0] Submitting supply request: {"dentist_id":"","item_id":"fb4878fa-b4da-43d7-b1c9-c7192fdb5e09","quantity":1,"status":"pending"}
+[02:20:28.586] Browser ERROR   [v0] Supabase error creating supply request: {"code":"PGRST204","details":null,"hint":null,"message":"Could not find the 'dentist_id' column of 'supply_requests' in the schema cache"}
+[02:20:28.586] Browser ERROR   [v0] Exception in supplyRequestService.create: {}
+[02:20:28.586] Browser ERROR   [v0] Error submitting supply request: {}
+[02:20:28.586] Browser ERROR   [v0] Error details: Failed to create supply request: Could not find the 'dentist_id' column of 'supply_requests' in the schema cache
+[02:21:26.681] Browser LOG     [v0] Submitting supply request: {"dentist_id":"","item_id":"fb4878fa-b4da-43d7-b1c9-c7192fdb5e09","quantity":1,"status":"pending"}
+[02:21:28.230] Browser ERROR   [v0] Supabase error creating supply request: {"code":"PGRST204","details":null,"hint":null,"message":"Could not find the 'dentist_id' column of 'supply_requests' in the schema cache"}
+[02:21:28.230] Browser ERROR   [v0] Exception in supplyRequestService.create: {}
+[02:21:28.230] Browser ERROR   [v0] Error submitting supply request: {}
+[02:21:28.230] Browser ERROR   [v0] Error details: Failed to create supply request: Could not find the 'dentist_id' column of 'supply_requests' in the schema cache
+[02:21:29.145] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:21:32.923] Browser LOG     [v0] Submitting supply request: {"dentist_id":"","item_id":"fb4878fa-b4da-43d7-b1c9-c7192fdb5e09","quantity":1,"status":"pending"}
+[02:21:43.491] Browser ERROR   [v0] Supabase error creating supply request: {"code":"PGRST204","details":null,"hint":null,"message":"Could not find the 'dentist_id' column of 'supply_requests' in the schema cache"}
+[02:21:43.491] Browser ERROR   [v0] Exception in supplyRequestService.create: {}
+[02:21:43.491] Browser ERROR   [v0] Error submitting supply request: {}
+[02:21:43.491] Browser ERROR   [v0] Error details: Failed to create supply request: Could not find the 'dentist_id' column of 'supply_requests' in the schema cache
+[02:22:42.536] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:22:45.535] Server  LOG      ✓ Compiled in 71ms
+[02:23:46.337] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[02:24:24.908] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[02:24:50.520] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[02:24:58.742] Browser ERROR   [v0] Supabase error updating appointment: {"code":"23514","details":"Failing row contains (4e549221-9332-4ce0-9adb-40c90f5e5c98, a23cb845-cc0e-4854-923e-b7b6d027ed76, 36bbff44-0df3-4926-a241-83e753324ffa, 2025-12-08, 09:00:00, Deep Cleaning (Scaling & Root Planing), approved, , 2025-12-07 14:45:09.03648, 2025-12-07 14:45:44.569).","hint":null,"message":"new row for relation \"appointments\" violates check constraint \"appointments_status_check\""}
+[02:24:58.742] Browser ERROR   [v0] Error in appointmentService.update(): Failed to update appointment: new row for relation "appointments" violates check constraint "appointments_status_check"
+[02:24:58.742] Browser ERROR   [v0] Error approving appointment: {}
+[02:26:12.606] Server  LOG      ✓ Compiled in 58ms
+[02:26:34.613] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:26:47.567] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[02:31:44.727] Server  LOG      ✓ Compiled in 131ms
+[02:35:09.363] Server  LOG      ✓ Compiled in 78ms
+[02:35:36.010] Server  LOG      ✓ Compiled in 70ms
+[02:36:47.321] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[02:37:15.294] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[02:43:19.870] Server  LOG      ✓ Compiled in 66ms
+[02:57:59.923] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[03:10:41.460] Browser ERROR   [v0] Error adding inventory: {"code":"23502","details":"Failing row contains (null, GLoves, 39, 40, Material, Rose Bakeshop, null, 2025-12-07 15:31:30.062566, 2025-12-07 15:31:30.062566).","hint":null,"message":"null value in column \"id\" of relation \"inventory\" violates not-null constraint"}
+[03:10:41.460] Browser ERROR   [v0] Error adding inventory: {"code":"23502","details":"Failing row contains (null, tooth brush, 20, 24, Equipment, na, null, 2025-12-07 15:31:30.062576, 2025-12-07 15:31:30.062576).","hint":null,"message":"null value in column \"id\" of relation \"inventory\" violates not-null constraint"}
+[03:13:22.631] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[03:13:35.986] Browser ERROR   [v0] Error adding inventory: {"code":"23502","details":"Failing row contains (null, Olanda, 5, 6, Orthodontic, mercury, null, 2025-12-07 15:34:24.632197, 2025-12-07 15:34:24.632197).","hint":null,"message":"null value in column \"id\" of relation \"inventory\" violates not-null constraint"}
+[03:15:10.713] Server  LOG      ✓ Compiled in 115ms
+[03:15:16.159] Server  LOG      ✓ Compiled in 94ms
+[03:16:18.418] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[03:16:34.318] Browser ERROR   [v0] Supabase error creating inventory item: {"code":"","details":"TypeError: Failed to fetch\n    at http://localhost:3000/_next/static/chunks/f7ea7_2f548f7f._.js:10503:23\n    at http://localhost:3000/_next/static/chunks/f7ea7_2f548f7f._.js:10521:16\n    at async Object.create (http://localhost:3000/_next/static/chunks/im_mouthworks_im_mouthworks_e5d2cb27._.js:978:33)\n    at async handleAddInventory (http://localhost:3000/_next/static/chunks/im_mouthworks_im_mouthworks_e5d2cb27._.js:1610:29)","hint":"","message":"TypeError: Failed to fetch"}
+[03:16:34.318] Browser ERROR   [v0] Error adding inventory: TypeError: Failed to fetch
+[03:17:30.120] Server  LOG      ✓ Compiled in 65ms
+[03:19:55.784] Server  LOG      ✓ Compiled in 85ms
+[03:23:56.820] Server  LOG      ✓ Compiled in 74ms
+[03:24:32.601] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[03:24:42.793] Browser ERROR   [v0] Inventory create API error: Missing Supabase server config
+[03:24:42.793] Browser ERROR   [v0] Failed to call inventory create API: Missing Supabase server config
+[03:24:42.793] Browser ERROR   [v0] Error adding inventory: Missing Supabase server config
+[03:28:23.101] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[03:28:34.679] Browser ERROR   [v0] Inventory create API error: Missing SUPABASE_SERVICE_ROLE. Set SUPABASE_SERVICE_ROLE env var (use your Supabase project's service_role key).
+In PowerShell: $env:SUPABASE_SERVICE_ROLE='your-key'
+[03:28:34.679] Browser ERROR   [v0] Failed to call inventory create API: Missing SUPABASE_SERVICE_ROLE. Set SUPABASE_SERVICE_ROLE env var (use your Supabase project's service_role key).
+In PowerShell: $env:SUPABASE_SERVICE_ROLE='your-key'
+[03:28:34.679] Browser ERROR   [v0] Error adding inventory: Missing SUPABASE_SERVICE_ROLE. Set SUPABASE_SERVICE_ROLE env var (use your Supabase project's service_role key).
+In PowerShell: $env:SUPABASE_SERVICE_ROLE='your-key'
+[03:29:34.251] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[03:29:45.801] Browser ERROR   [v0] Inventory create API error: Missing SUPABASE_SERVICE_ROLE. Set SUPABASE_SERVICE_ROLE env var (use your Supabase project's service_role key).
+In PowerShell: $env:SUPABASE_SERVICE_ROLE='your-key'
+[03:29:45.801] Browser ERROR   [v0] Failed to call inventory create API: Missing SUPABASE_SERVICE_ROLE. Set SUPABASE_SERVICE_ROLE env var (use your Supabase project's service_role key).
+In PowerShell: $env:SUPABASE_SERVICE_ROLE='your-key'
+[03:29:45.801] Browser ERROR   [v0] Error adding inventory: Missing SUPABASE_SERVICE_ROLE. Set SUPABASE_SERVICE_ROLE env var (use your Supabase project's service_role key).
+In PowerShell: $env:SUPABASE_SERVICE_ROLE='your-key'
+[03:31:37.023] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[03:31:50.713] Browser ERROR   [v0] Inventory create API error: Missing SUPABASE_SERVICE_ROLE. Set SUPABASE_SERVICE_ROLE env var (use your Supabase project's service_role key).
+In PowerShell: $env:SUPABASE_SERVICE_ROLE='your-key'
+[03:31:50.713] Browser ERROR   [v0] Failed to call inventory create API: Missing SUPABASE_SERVICE_ROLE. Set SUPABASE_SERVICE_ROLE env var (use your Supabase project's service_role key).
+In PowerShell: $env:SUPABASE_SERVICE_ROLE='your-key'
+[03:31:50.713] Browser ERROR   [v0] Error adding inventory: Missing SUPABASE_SERVICE_ROLE. Set SUPABASE_SERVICE_ROLE env var (use your Supabase project's service_role key).
+In PowerShell: $env:SUPABASE_SERVICE_ROLE='your-key'
+[03:34:58.690] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[03:35:12.572] Browser ERROR   [v0] Inventory create API error: Missing SUPABASE_SERVICE_ROLE. Set SUPABASE_SERVICE_ROLE env var (use your Supabase project's service_role key).
+In PowerShell: $env:SUPABASE_SERVICE_ROLE='your-key'
+[03:35:12.572] Browser ERROR   [v0] Failed to call inventory create API: Missing SUPABASE_SERVICE_ROLE. Set SUPABASE_SERVICE_ROLE env var (use your Supabase project's service_role key).
+In PowerShell: $env:SUPABASE_SERVICE_ROLE='your-key'
+[03:35:12.572] Browser ERROR   [v0] Error adding inventory: Missing SUPABASE_SERVICE_ROLE. Set SUPABASE_SERVICE_ROLE env var (use your Supabase project's service_role key).
+In PowerShell: $env:SUPABASE_SERVICE_ROLE='your-key'
+[03:38:08.139] Browser WARN    [v0] Supabase auth signIn error: {"__isAuthError":true,"code":"invalid_credentials","name":"AuthApiError","status":400}
+[03:43:33.536] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[03:44:01.231] Browser ERROR   [v0] Inventory create API error: Missing SUPABASE_SERVICE_ROLE. Set SUPABASE_SERVICE_ROLE env var (use your Supabase project's service_role key).
+In PowerShell: $env:SUPABASE_SERVICE_ROLE='your-key'
+[03:44:01.231] Browser ERROR   [v0] Failed to call inventory create API: Missing SUPABASE_SERVICE_ROLE. Set SUPABASE_SERVICE_ROLE env var (use your Supabase project's service_role key).
+In PowerShell: $env:SUPABASE_SERVICE_ROLE='your-key'
+[03:44:01.231] Browser ERROR   [v0] Error adding inventory: Missing SUPABASE_SERVICE_ROLE. Set SUPABASE_SERVICE_ROLE env var (use your Supabase project's service_role key).
+In PowerShell: $env:SUPABASE_SERVICE_ROLE='your-key'
+[03:47:30.696] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[03:48:03.168] Browser ERROR   [v0] Inventory create API error: Missing Authorization token
+[03:48:03.168] Browser ERROR   [v0] Failed to call inventory create API: Missing Authorization token
+[03:48:03.168] Browser ERROR   [v0] Error adding inventory: Missing Authorization token

@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/dentist/layout,_N_T_/dentist/reports/layout,_N_T_/dentist/reports/page,_N_T_/dentist/reports"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/dentist/reports/__PAGE__",
+    "/dentist/reports",
+    "/dentist",
+    "/_index",
+    "/_head"
+  ]
+}

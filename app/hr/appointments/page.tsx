@@ -19,9 +19,11 @@ import {
   CheckCircle,
   XCircle,
   Clock,
+  UserPlus,
 } from "lucide-react"
-import { appointmentService } from "@/lib/db-service"
+import { appointmentService, treatmentRecordService } from "@/lib/db-service"
 import ScheduleAppointmentModal from "@/components/modals/schedule-appointment-modal"
+import AssignDentistModal from "@/components/modals/assign-dentist-modal"
 
 interface Appointment {
   id: string
@@ -41,6 +43,8 @@ export default function HRAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(true)
   const [showScheduleModal, setShowScheduleModal] = useState(false)
+  const [showAssignModal, setShowAssignModal] = useState(false)
+  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
   const [filter, setFilter] = useState("all")
 
   useEffect(() => {
@@ -82,6 +86,37 @@ export default function HRAppointments() {
     }
   }
 
+  const handleAssignDentist = async (dentistId: string) => {
+    if (!selectedAppointment) return
+    try {
+      // Assign dentist and mark as pending so the dentist sees it for approval
+      const updated = await appointmentService.update(selectedAppointment.id, {
+        dentist_id: dentistId,
+        status: "pending",
+      })
+      setAppointments(appointments.map((a) => (a.id === selectedAppointment.id ? updated : a)))
+      // Record the assignment in treatment_records so the dentist has a persisted assignment entry
+      try {
+        await treatmentRecordService.create({
+          appointment_id: selectedAppointment.id,
+          patient_id: selectedAppointment.patient_id,
+          dentist_id: dentistId,
+          description: "Assigned appointment by HR",
+          notes: `Assigned on ${new Date().toISOString()}`,
+          date: new Date().toISOString(),
+        })
+      } catch (recErr) {
+        console.warn("[v0] Warning creating treatment record for assignment:", recErr)
+      }
+      setShowAssignModal(false)
+      setSelectedAppointment(null)
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : JSON.stringify(error)
+      console.error("[v0] Error assigning dentist:", errorMsg)
+      alert(`Error: ${errorMsg}`)
+    }
+  }
+
   const handleDeleteAppointment = async (id: string) => {
     if (confirm("Are you sure you want to cancel this appointment?")) {
       try {
@@ -102,6 +137,11 @@ export default function HRAppointments() {
     }
   }
 
+  const openAssignModal = (apt: Appointment) => {
+    setSelectedAppointment(apt)
+    setShowAssignModal(true)
+  }
+
   const filteredAppointments = filter === "all" ? appointments : appointments.filter((a) => a.status === filter)
 
   const statusGroups = {
@@ -117,7 +157,7 @@ export default function HRAppointments() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold text-foreground">Schedule Appointments</h2>
-            <p className="text-muted-foreground">Create and manage all clinic appointments</p>
+            <p className="text-muted-foreground">Manage patient bookings and dentist assignments</p>
           </div>
           <Button
             onClick={() => setShowScheduleModal(true)}
@@ -127,6 +167,83 @@ export default function HRAppointments() {
             New Appointment
           </Button>
         </div>
+
+        {/* PATIENT BOOKING REQUESTS - HIGHLIGHTED */}
+        {statusGroups.pending.length > 0 && (
+          <Card className="border-blue-300 bg-blue-50/50">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-blue-900">
+                <Clock className="w-5 h-5 text-blue-600" />
+                Patient Booking Requests ({statusGroups.pending.length})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {statusGroups.pending.map((apt) => (
+                  <div
+                    key={apt.id}
+                    className="p-4 border-2 border-blue-300 bg-white rounded-lg hover:bg-blue-50/30 transition-colors"
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <p className="font-semibold text-lg text-foreground">
+                          {apt.patients?.name || "Unknown Patient"}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {apt.service || "General Visit"} 
+                          {apt.dentist_id ? ` with Dr. ${apt.dentists?.name}` : " - Dentist needed"}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-primary">{apt.date}</p>
+                        <p className="text-sm text-muted-foreground">{apt.time}</p>
+                      </div>
+                    </div>
+                    {apt.notes && (
+                      <p className="text-sm text-muted-foreground mb-3 p-2 bg-muted/50 rounded">
+                        <span className="font-medium">Patient Notes:</span> {apt.notes}
+                      </p>
+                    )}
+                    <div className="flex gap-2">
+                      {!apt.dentist_id ? (
+                        <>
+                          <Button
+                            onClick={() => openAssignModal(apt)}
+                            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                          >
+                            <UserPlus className="w-4 h-4 mr-2" />
+                            Assign Dentist
+                          </Button>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleDeleteAppointment(apt.id)}
+                          >
+                            <Trash2 className="w-3 h-3" />
+                          </Button>
+                        </>
+                      ) : (
+                        <>
+                          <p className="flex-1 text-sm text-muted-foreground pt-2">
+                            Dentist assigned, awaiting approval
+                          </p>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => openAssignModal(apt)}
+                            className="text-xs"
+                          >
+                            Change
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Status Filters */}
         <div className="flex gap-2">
@@ -246,6 +363,14 @@ export default function HRAppointments() {
 
       {showScheduleModal && (
         <ScheduleAppointmentModal onClose={() => setShowScheduleModal(false)} onSubmit={handleScheduleAppointment} />
+      )}
+
+      {showAssignModal && selectedAppointment && (
+        <AssignDentistModal
+          appointment={selectedAppointment}
+          onClose={() => setShowAssignModal(false)}
+          onAssign={handleAssignDentist}
+        />
       )}
     </MainLayout>
   )

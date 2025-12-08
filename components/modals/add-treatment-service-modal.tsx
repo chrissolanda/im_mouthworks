@@ -92,7 +92,7 @@ export default function AddTreatmentServiceModal({ treatment, onClose, onSubmit 
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Price ($)</label>
+            <label className="text-sm font-medium text-foreground">Price (₱)</label>
             <Input
               name="price"
               type="number"

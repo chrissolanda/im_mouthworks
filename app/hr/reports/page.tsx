@@ -16,6 +16,7 @@ import {
   TrendingUp,
 } from "lucide-react"
 import { mockAppointments, mockPayments } from "@/components/data/mock-data"
+import { formatCurrency } from "@/lib/utils"
 
 export default function HRReports() {
   const { user } = useAuth()
@@ -68,7 +69,7 @@ export default function HRReports() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Revenue</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-600">${paymentStats.totalRevenue.toFixed(2)}</div>
+              <div className="text-3xl font-bold text-green-600">{formatCurrency(paymentStats.totalRevenue)}</div>
               <p className="text-xs text-muted-foreground mt-1">Payments received</p>
             </CardContent>
           </Card>
@@ -88,7 +89,7 @@ export default function HRReports() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Pending Revenue</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-yellow-600">${paymentStats.totalPending.toFixed(2)}</div>
+              <div className="text-3xl font-bold text-yellow-600">{formatCurrency(paymentStats.totalPending)}</div>
               <p className="text-xs text-muted-foreground mt-1">Outstanding balance</p>
             </CardContent>
           </Card>

@@ -3,7 +3,7 @@
 import { useAuth } from "@/lib/auth-context"
 import MainLayout from "@/components/layout/main-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { LayoutDashboard, Calendar, Bluetooth as Tooth, BarChart3, Download } from "lucide-react"
+import { LayoutDashboard, Calendar, Bluetooth as Tooth, BarChart3, Download, DollarSign } from "lucide-react"
 import { mockAppointments } from "@/components/data/mock-data"
 
 export default function DentistReports() {
@@ -13,6 +13,7 @@ export default function DentistReports() {
     { label: "Dashboard", icon: <LayoutDashboard className="w-5 h-5" />, href: "/dentist/dashboard" },
     { label: "My Schedule", icon: <Calendar className="w-5 h-5" />, href: "/dentist/schedule" },
     { label: "Treatments", icon: <Tooth className="w-5 h-5" />, href: "/dentist/treatments" },
+    { label: "Earnings", icon: <DollarSign className="w-5 h-5" />, href: "/dentist/earnings" },
     { label: "Reports", icon: <BarChart3 className="w-5 h-5" />, href: "/dentist/reports" },
   ]
 

@@ -4,6 +4,7 @@ import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { X } from "lucide-react"
 import { treatmentService, dentistService } from "@/lib/db-service"
+import { formatCurrency } from "@/lib/utils"
 
 interface BookAppointmentModalProps {
   onClose: () => void
@@ -105,7 +106,7 @@ export default function BookAppointmentModal({ onClose, onSubmit }: BookAppointm
                     className="w-full p-3 border border-border rounded-lg hover:border-primary hover:bg-primary/5 transition-colors text-left"
                   >
                     <p className="font-medium text-foreground">{treatment.name}</p>
-                    <p className="text-xs text-muted-foreground">${treatment.price}</p>
+                    <p className="text-xs text-muted-foreground">{formatCurrency(treatment.price)}</p>
                   </button>
                 ))
               )}

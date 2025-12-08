@@ -19,10 +19,10 @@ import {
   Edit,
   Trash2,
   Search,
-  DollarSign,
   Tag,
 } from "lucide-react"
 import { treatmentService } from "@/lib/db-service"
+import { formatCurrency } from "@/lib/utils"
 import AddTreatmentServiceModal from "@/components/modals/add-treatment-service-modal"
 
 interface Treatment {
@@ -203,10 +203,7 @@ export default function HRTreatments() {
                   <p className="text-sm text-muted-foreground">{treatment.description || "No description"}</p>
                   <div className="flex items-center justify-between p-3 bg-muted rounded-lg">
                     <span className="text-sm font-medium text-foreground">Price</span>
-                    <div className="flex items-center gap-1">
-                      <DollarSign className="w-4 h-4 text-primary" />
-                      <span className="font-bold text-lg text-primary">{treatment.price || "0"}</span>
-                    </div>
+                    <span className="font-bold text-lg text-primary">{formatCurrency(treatment.price)}</span>
                   </div>
                 </CardContent>
               </Card>
@@ -231,12 +228,11 @@ export default function HRTreatments() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Avg Price</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-primary">
-                $
-                {treatments.length > 0
-                  ? (treatments.reduce((sum, t) => sum + (t.price || 0), 0) / treatments.length).toFixed(0)
-                  : "0"}
-              </div>
+                <div className="text-3xl font-bold text-primary">{formatCurrency(
+                  treatments.length > 0
+                    ? treatments.reduce((sum, t) => sum + (t.price || 0), 0) / treatments.length
+                    : 0,
+                )}</div>
               <p className="text-xs text-muted-foreground mt-1">Per service</p>
             </CardContent>
           </Card>

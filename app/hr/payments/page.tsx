@@ -22,6 +22,7 @@ import {
   AlertCircle,
 } from "lucide-react"
 import { paymentService, patientService } from "@/lib/db-service"
+import { formatCurrency } from "@/lib/utils"
 import RecordPaymentModal from "@/components/modals/record-payment-modal"
 
 interface EditingPaymentId {
@@ -162,7 +163,7 @@ export default function HRPayments() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Paid</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-600">${totalPaid.toFixed(2)}</div>
+              <div className="text-3xl font-bold text-green-600">{formatCurrency(totalPaid)}</div>
               <p className="text-xs text-muted-foreground mt-1">{paymentStats.paid} payments</p>
             </CardContent>
           </Card>
@@ -172,7 +173,7 @@ export default function HRPayments() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Partial Payments</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-yellow-600">${totalPartial.toFixed(2)}</div>
+              <div className="text-3xl font-bold text-yellow-600">{formatCurrency(totalPartial)}</div>
               <p className="text-xs text-muted-foreground mt-1">{paymentStats.partial} payments</p>
             </CardContent>
           </Card>
@@ -182,7 +183,7 @@ export default function HRPayments() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Unpaid Balance</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-destructive">${totalUnpaid.toFixed(2)}</div>
+              <div className="text-3xl font-bold text-destructive">{formatCurrency(totalUnpaid)}</div>
               <p className="text-xs text-muted-foreground mt-1">{paymentStats.unpaid} unpaid</p>
             </CardContent>
           </Card>
@@ -192,7 +193,7 @@ export default function HRPayments() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Total Revenue</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-primary">${(totalPaid + totalPartial).toFixed(2)}</div>
+              <div className="text-3xl font-bold text-primary">{formatCurrency(totalPaid + totalPartial)}</div>
               <p className="text-xs text-muted-foreground mt-1">Received so far</p>
             </CardContent>
           </Card>
@@ -272,7 +273,7 @@ export default function HRPayments() {
                           <td className="py-3 px-4 text-sm text-muted-foreground">{payment.dentists?.name || "-"}</td>
                           <td className="py-3 px-4 text-sm text-muted-foreground">{payment.description || "-"}</td>
                           <td className="py-3 px-4 text-sm font-semibold text-foreground">
-                            ${payment.amount.toFixed(2)}
+                            {formatCurrency(payment.amount)}
                           </td>
                           <td className="py-3 px-4 text-sm text-muted-foreground">{payment.method || "-"}</td>
                           <td className="py-3 px-4">

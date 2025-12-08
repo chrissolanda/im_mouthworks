@@ -18,6 +18,7 @@ import {
   Clock,
 } from "lucide-react"
 import { paymentService } from "@/lib/db-service"
+import { formatCurrency } from "@/lib/utils"
 
 interface Payment {
   id: string
@@ -29,6 +30,7 @@ interface Payment {
   date?: string
   description?: string
   patients?: { name: string; email: string }
+  appointments?: { status: string }
 }
 
 export default function DentistEarnings() {
@@ -96,7 +98,7 @@ export default function DentistEarnings() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-600">${earnings.totalEarned.toFixed(2)}</div>
+              <div className="text-3xl font-bold text-green-600">{formatCurrency(earnings.totalEarned)}</div>
               <p className="text-xs text-muted-foreground mt-1">{earnings.totalCompleted} completed</p>
             </CardContent>
           </Card>
@@ -109,7 +111,7 @@ export default function DentistEarnings() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-yellow-600">${earnings.totalPending.toFixed(2)}</div>
+              <div className="text-3xl font-bold text-yellow-600">{formatCurrency(earnings.totalPending)}</div>
               <p className="text-xs text-muted-foreground mt-1">Awaiting confirmation</p>
             </CardContent>
           </Card>
@@ -129,10 +131,8 @@ export default function DentistEarnings() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Net Balance</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-blue-600">
-                ${(earnings.totalEarned + earnings.totalPending).toFixed(2)}
-              </div>
-              <p className="text-xs text-muted-foreground mt-1">Total outstanding</p>
+              <div className="text-3xl font-bold text-blue-600">{formatCurrency(earnings.totalEarned * 0.5)}</div>
+              <p className="text-xs text-muted-foreground mt-1">Dentist share (50% of total earned)</p>
             </CardContent>
           </Card>
         </div>
@@ -188,7 +188,8 @@ export default function DentistEarnings() {
                       <th className="text-left py-3 px-4 font-semibold text-foreground">Service</th>
                       <th className="text-left py-3 px-4 font-semibold text-foreground">Amount</th>
                       <th className="text-left py-3 px-4 font-semibold text-foreground">Method</th>
-                      <th className="text-left py-3 px-4 font-semibold text-foreground">Status</th>
+                      <th className="text-left py-3 px-4 font-semibold text-foreground">Appointment Status</th>
+                      <th className="text-left py-3 px-4 font-semibold text-foreground">Payment Status</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -209,9 +210,26 @@ export default function DentistEarnings() {
                           </td>
                           <td className="py-3 px-4 text-sm text-muted-foreground">{payment.description || "-"}</td>
                           <td className="py-3 px-4 text-sm font-semibold text-foreground">
-                            ${payment.amount.toFixed(2)}
+                            {formatCurrency(payment.amount)}
                           </td>
                           <td className="py-3 px-4 text-sm text-muted-foreground">{payment.method || "-"}</td>
+                          <td className="py-3 px-4">
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
+                                payment.appointments?.status === "completed"
+                                  ? "bg-green-100 text-green-700"
+                                  : payment.appointments?.status === "confirmed"
+                                    ? "bg-blue-100 text-blue-700"
+                                    : "bg-gray-100 text-gray-700"
+                              }`}
+                            >
+                              {payment.appointments?.status ? (
+                                payment.appointments.status.charAt(0).toUpperCase() + payment.appointments.status.slice(1)
+                              ) : (
+                                "Pending"
+                              )}
+                            </span>
+                          </td>
                           <td className="py-3 px-4">
                             <span
                               className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${

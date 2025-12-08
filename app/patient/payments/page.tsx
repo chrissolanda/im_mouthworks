@@ -6,6 +6,7 @@ import MainLayout from "@/components/layout/main-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { LayoutDashboard, Calendar, User, CreditCard, Download, AlertCircle, CheckCircle, DollarSign } from "lucide-react"
 import { paymentService } from "@/lib/db-service"
+import { formatCurrency } from "@/lib/utils"
 
 interface Payment {
   id: string
@@ -73,7 +74,7 @@ export default function PatientPayments() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-green-600">${balance.totalPaid.toFixed(2)}</div>
+              <div className="text-3xl font-bold text-green-600">{formatCurrency(balance.totalPaid)}</div>
               <p className="text-xs text-muted-foreground mt-1">All payments received</p>
             </CardContent>
           </Card>
@@ -86,7 +87,7 @@ export default function PatientPayments() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-destructive">${balance.totalBalance.toFixed(2)}</div>
+              <div className="text-3xl font-bold text-destructive">{formatCurrency(balance.totalBalance)}</div>
               <p className="text-xs text-muted-foreground mt-1">Pending payment</p>
             </CardContent>
           </Card>
@@ -119,7 +120,9 @@ export default function PatientPayments() {
                 <table className="w-full">
                   <thead>
                     <tr className="border-b border-border">
+                      <th className="text-left py-3 px-4 font-semibold text-foreground">Payment ID</th>
                       <th className="text-left py-3 px-4 font-semibold text-foreground">Date</th>
+                      <th className="text-left py-3 px-4 font-semibold text-foreground">Appointment</th>
                       <th className="text-left py-3 px-4 font-semibold text-foreground">Description</th>
                       <th className="text-left py-3 px-4 font-semibold text-foreground">Dentist</th>
                       <th className="text-left py-3 px-4 font-semibold text-foreground">Amount</th>
@@ -131,21 +134,21 @@ export default function PatientPayments() {
                   <tbody>
                     {payments.length === 0 ? (
                       <tr>
-                        <td colSpan={7} className="py-8 text-center text-muted-foreground">
+                        <td colSpan={9} className="py-8 text-center text-muted-foreground">
                           No payment history
                         </td>
                       </tr>
                     ) : (
                       payments.map((payment) => (
                         <tr key={payment.id} className="border-b border-border hover:bg-muted/50 transition-colors">
+                          <td className="py-3 px-4 text-sm text-foreground font-mono text-xs">{payment.id}</td>
                           <td className="py-3 px-4 text-sm text-foreground">
                             {payment.date ? new Date(payment.date).toLocaleDateString() : "-"}
                           </td>
+                          <td className="py-3 px-4 text-sm text-muted-foreground">{payment.appointment_id || "-"}</td>
                           <td className="py-3 px-4 text-sm text-foreground">{payment.description || "-"}</td>
                           <td className="py-3 px-4 text-sm text-muted-foreground">{payment.dentists?.name || "-"}</td>
-                          <td className="py-3 px-4 text-sm font-semibold text-foreground">
-                            ${payment.amount.toFixed(2)}
-                          </td>
+                          <td className="py-3 px-4 text-sm font-semibold text-foreground">{formatCurrency(payment.amount)}</td>
                           <td className="py-3 px-4 text-sm text-muted-foreground">{payment.method || "-"}</td>
                           <td className="py-3 px-4">
                             <span
@@ -166,8 +169,21 @@ export default function PatientPayments() {
                             </span>
                           </td>
                           <td className="py-3 px-4">
-                            <button className="text-primary hover:text-primary/80 transition-colors">
+                            <button
+                              onClick={() => {
+                                const blob = new Blob([JSON.stringify(payment, null, 2)], { type: "application/json" })
+                                const url = URL.createObjectURL(blob)
+                                const a = document.createElement("a")
+                                a.href = url
+                                a.download = `payment-${payment.id}.json`
+                                a.click()
+                                URL.revokeObjectURL(url)
+                              }}
+                              className="text-primary hover:text-primary/80 transition-colors flex items-center gap-2"
+                              title="Download payment details"
+                            >
                               <Download className="w-4 h-4" />
+                              <span className="sr-only">Download</span>
                             </button>
                           </td>
                         </tr>

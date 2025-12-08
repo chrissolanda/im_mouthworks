@@ -130,7 +130,7 @@ export default function RecordPaymentModal({ onClose, onSubmit }: RecordPaymentM
           </div>
 
           <div className="space-y-2">
-            <label className="text-sm font-medium text-foreground">Amount ($) *</label>
+            <label className="text-sm font-medium text-foreground">Amount (₱) *</label>
             <Input
               name="amount"
               type="number"

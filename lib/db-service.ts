@@ -7,6 +7,17 @@ const getSupabase = () => {
   return getSupabaseClient()
 }
 
+// Helpers
+const toSnakeCaseObject = (obj: any) => {
+  if (!obj || typeof obj !== "object" || Array.isArray(obj)) return obj
+  const result: any = {}
+  Object.entries(obj).forEach(([key, value]) => {
+    const snakeKey = key.replace(/[A-Z]/g, (m) => `_${m.toLowerCase()}`)
+    result[snakeKey] = value
+  })
+  return result
+}
+
 // Dentists
 export const dentistService = {
   async getAll() {
@@ -73,15 +84,35 @@ export const patientService = {
         .from("patients")
         .select("*")
         .ilike("name", name)
-        .maybeSingle()
+        .limit(1)
       if (error) {
         console.error("[v0] Supabase error fetching patient by name:", error)
         throw new Error(`Failed to fetch patient by name: ${error.message}`)
       }
-      return data
+      return data && data.length > 0 ? data[0] : null
     } catch (err) {
       const errorMsg = err instanceof Error ? err.message : JSON.stringify(err)
       console.error("[v0] Error in patientService.getByName():", errorMsg)
+      throw err
+    }
+  },
+
+  async getByEmail(email: string) {
+    try {
+      const { data, error } = await getSupabase()
+        .from("patients")
+        .select("*")
+        .eq("email", email)
+        .limit(1)
+      if (error) {
+        console.error("[v0] Supabase error fetching patient by email:", error)
+        throw new Error(`Failed to fetch patient by email: ${error.message}`)
+      }
+      // Return the first result or null
+      return data && data.length > 0 ? data[0] : null
+    } catch (err) {
+      const errorMsg = err instanceof Error ? err.message : JSON.stringify(err)
+      console.error("[v0] Error in patientService.getByEmail():", errorMsg)
       throw err
     }
   },
@@ -377,7 +408,7 @@ export const paymentService = {
     try {
       const { data, error } = await getSupabase()
         .from("payments")
-        .select("amount, status")
+        .select("amount, status, appointment_id, appointments(status)")
         .eq("dentist_id", dentistId)
       if (error) {
         console.warn("Error fetching dentist earnings:", error.message)
@@ -389,7 +420,20 @@ export const paymentService = {
       let totalCompleted = 0
 
       data?.forEach((payment: any) => {
-        if (payment.status === "paid") {
+        // Determine if payment should be counted based on appointment status
+        const appointmentStatus = payment.appointments?.status
+        
+        // Only count as earned if appointment is completed
+        if (appointmentStatus === "completed") {
+          totalEarned += payment.amount
+          totalCompleted += 1
+        }
+        // Count as pending if appointment is confirmed/approved but not completed
+        else if (appointmentStatus === "confirmed") {
+          totalPending += payment.amount
+        }
+        // Fall back to payment status for backward compatibility
+        else if (payment.status === "paid") {
           totalEarned += payment.amount
           totalCompleted += 1
         } else if (payment.status === "unpaid") {
@@ -422,15 +466,47 @@ export const inventoryService = {
   },
 
   async create(item: any) {
-    const { data, error } = await getSupabase().from("inventory").insert([item]).select().single()
-    if (error) throw error
-    return data
+    // Use a server-side API route to create inventory. This avoids RLS/cors/network issues
+    // when the client cannot directly insert into the DB.
+    try {
+      const supabaseClient = getSupabase()
+      // Try to include the user's access token so the server route can verify staff role
+      let token: string | undefined
+      try {
+        const sessionResp: any = await supabaseClient.auth.getSession()
+        token = sessionResp?.data?.session?.access_token || sessionResp?.data?.access_token
+      } catch (e) {
+        // ignore
+      }
+
+      const headers: any = { "Content-Type": "application/json" }
+      if (token) headers["Authorization"] = `Bearer ${token}`
+
+      const res = await fetch("/api/inventory/create", {
+        method: "POST",
+        headers,
+        body: JSON.stringify(item),
+      })
+
+      const json = await res.json()
+      if (!res.ok) {
+        const errMsg = json?.error || `Status ${res.status}`
+        console.error("[v0] Inventory create API error:", errMsg)
+        throw new Error(errMsg)
+      }
+      return json
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : JSON.stringify(err)
+      console.error("[v0] Failed to call inventory create API:", errMsg)
+      throw new Error(errMsg)
+    }
   },
 
   async update(id: string, updates: any) {
+    const payload = toSnakeCaseObject(updates)
     const { data, error } = await getSupabase()
       .from("inventory")
-      .update({ ...updates, updated_at: new Date() })
+      .update({ ...payload, updated_at: new Date() })
       .eq("id", id)
       .select()
       .single()
@@ -481,6 +557,25 @@ export const supplyRequestService = {
       .select("*, inventory(name, category), staff(name)")
       .order("requested_date", { ascending: false })
     if (error) throw error
+    
+    // Try to fetch dentist info separately if dentist_id exists
+    if (data && data.length > 0 && data[0].dentist_id) {
+      try {
+        const dentistIds = [...new Set(data.map((d: any) => d.dentist_id).filter(Boolean))]
+        const { data: dentists } = await getSupabase()
+          .from("dentists")
+          .select("id, name")
+          .in("id", dentistIds)
+        
+        const dentistMap = Object.fromEntries(dentists?.map((d: any) => [d.id, d]) || [])
+        return data.map((req: any) => ({
+          ...req,
+          dentists: req.dentist_id ? dentistMap[req.dentist_id] : null
+        }))
+      } catch (err) {
+        console.warn("[v0] Could not fetch dentist info:", err)
+      }
+    }
     return data
   },
 
@@ -490,17 +585,61 @@ export const supplyRequestService = {
       .select("*, inventory(name, category), staff(name)")
       .eq("status", "pending")
     if (error) throw error
+    
+    // Try to fetch dentist info separately if dentist_id exists
+    if (data && data.length > 0 && data[0].dentist_id) {
+      try {
+        const dentistIds = [...new Set(data.map((d: any) => d.dentist_id).filter(Boolean))]
+        const { data: dentists } = await getSupabase()
+          .from("dentists")
+          .select("id, name")
+          .in("id", dentistIds)
+        
+        const dentistMap = Object.fromEntries(dentists?.map((d: any) => [d.id, d]) || [])
+        return data.map((req: any) => ({
+          ...req,
+          dentists: req.dentist_id ? dentistMap[req.dentist_id] : null
+        }))
+      } catch (err) {
+        console.warn("[v0] Could not fetch dentist info:", err)
+      }
+    }
     return data
   },
 
   async create(request: any) {
-    const { data, error } = await getSupabase()
-      .from("supply_requests")
-      .insert([request])
-      .select("*, inventory(name), staff(name)")
-      .single()
-    if (error) throw error
-    return data
+    try {
+      const { data, error } = await getSupabase()
+        .from("supply_requests")
+        .insert([request])
+        .select("*, inventory(name, category), staff(name)")
+        .single()
+      if (error) {
+        console.error("[v0] Supabase error creating supply request:", error)
+        throw new Error(`Failed to create supply request: ${error.message}`)
+      }
+      
+      // Fetch dentist info separately if dentist_id exists
+      if (data && data.dentist_id) {
+        try {
+          const { data: dentist } = await getSupabase()
+            .from("dentists")
+            .select("id, name")
+            .eq("id", data.dentist_id)
+            .single()
+          if (dentist) {
+            data.dentists = dentist
+          }
+        } catch (err) {
+          console.warn("[v0] Could not fetch dentist info:", err)
+        }
+      }
+      
+      return data
+    } catch (err) {
+      console.error("[v0] Exception in supplyRequestService.create:", err)
+      throw err
+    }
   },
 
   async update(id: string, updates: any) {

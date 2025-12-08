@@ -7,10 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Calendar, CreditCard, LayoutDashboard, User } from "lucide-react"
 import Link from "next/link"
 import { appointmentService, paymentService } from "@/lib/db-service"
+import { formatCurrency } from "@/lib/utils"
 import PatientRegistrationModal from "@/components/modals/patient-registration-modal"
 
 export default function PatientDashboard() {
-  const { user, showPatientRegistration, savePatientProfile } = useAuth()
+  const { user, showPatientRegistration, savePatientProfile, patientAutoApproved } = useAuth()
   const [stats, setStats] = useState({
     upcomingCount: 0,
     outstandingBalance: 0,
@@ -96,6 +97,26 @@ export default function PatientDashboard() {
           <p className="opacity-90">Manage your dental appointments and health records</p>
         </div>
 
+        {/* Auto-Approval Notice */}
+        {patientAutoApproved && (
+          <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0">
+              <svg
+                className="w-6 h-6 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-semibold text-green-900">Your request has been approved!</p>
+              <p className="text-sm text-green-700">You're all set. You can now book appointments.</p>
+            </div>
+          </div>
+        )}
+
         {/* Quick Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="hover:shadow-md transition-shadow">
@@ -113,7 +134,7 @@ export default function PatientDashboard() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Outstanding Balance</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-destructive">${stats.outstandingBalance.toFixed(2)}</div>
+              <div className="text-3xl font-bold text-destructive">{formatCurrency(stats.outstandingBalance)}</div>
               <p className="text-xs text-muted-foreground mt-1">Pending payments</p>
             </CardContent>
           </Card>

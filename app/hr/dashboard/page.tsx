@@ -19,6 +19,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { patientService, appointmentService, paymentService, inventoryService } from "@/lib/db-service"
+import { formatCurrency } from "@/lib/utils"
 
 export default function HRDashboard() {
   const { user } = useAuth()
@@ -119,7 +120,7 @@ export default function HRDashboard() {
               <CardTitle className="text-sm font-medium text-muted-foreground">Pending Payments</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-destructive">${stats.pendingPayments.toFixed(2)}</div>
+              <div className="text-3xl font-bold text-destructive">{formatCurrency(stats.pendingPayments)}</div>
               <p className="text-xs text-muted-foreground mt-1">Unpaid invoices</p>
             </CardContent>
           </Card>

@@ -1,0 +1,3 @@
+module.exports=[94316,(a,b,c)=>{let{createClientModuleProxy:d}=a.r(97670);a.n(d("[project]/im_mouthworks/im_mouthworks/node_modules/next/dist/client/components/builtin/global-error.js <module evaluation>"))},54980,(a,b,c)=>{let{createClientModuleProxy:d}=a.r(97670);a.n(d("[project]/im_mouthworks/im_mouthworks/node_modules/next/dist/client/components/builtin/global-error.js"))},24149,a=>{"use strict";a.i(94316);var b=a.i(54980);a.n(b)}];
+
+//# sourceMappingURL=f7ea7_next_dist_client_components_builtin_global-error_5de22c7c.js.map

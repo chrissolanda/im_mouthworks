@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { X, Calendar, CheckCircle2 } from "lucide-react"
 
@@ -19,10 +20,28 @@ interface Appointment {
 }
 
 export default function PatientRegistrationModal({ onSubmit, userEmail }: PatientRegistrationModalProps) {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     name: "",
     phone: "",
   })
+  
+  const goToDashboard = () => {
+    try {
+      router.replace("/patient/dashboard")
+    } catch (e) {
+      try {
+        window.location.href = "/patient/dashboard"
+      } catch (err) {
+        // no-op
+      }
+    }
+    setTimeout(() => {
+      if (typeof window !== "undefined" && window.location.pathname !== "/patient/dashboard") {
+        window.location.href = "/patient/dashboard"
+      }
+    }, 500)
+  }
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [existingAppointments, setExistingAppointments] = useState<Appointment[] | null>(null)
@@ -79,15 +98,22 @@ export default function PatientRegistrationModal({ onSubmit, userEmail }: Patien
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-card rounded-lg shadow-2xl max-w-md w-full max-h-96 overflow-y-auto">
         {/* Header */}
-        <div className="p-6 border-b border-border sticky top-0 bg-card">
-          <h2 className="text-2xl font-bold text-foreground">
-            {existingAppointments ? "Your Appointments" : "Welcome to Mouthworks!"}
-          </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            {existingAppointments
-              ? "Here are your scheduled appointments"
-              : "Complete your profile to get started"}
-          </p>
+        <div className="p-6 border-b border-border sticky top-0 bg-card flex items-start justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-foreground">
+              {existingAppointments ? "Your Appointments" : "Welcome to Mouthworks!"}
+            </h2>
+            <p className="text-sm text-muted-foreground mt-1">
+              {existingAppointments
+                ? "Here are your scheduled appointments"
+                : "Complete your profile to get started"}
+            </p>
+          </div>
+          <div className="ml-4">
+            <button aria-label="Close" onClick={goToDashboard} className="p-2 rounded-md hover:bg-muted/50">
+              <X className="w-5 h-5 text-muted-foreground" />
+            </button>
+          </div>
         </div>
 
         {/* Error Message */}
@@ -125,14 +151,8 @@ export default function PatientRegistrationModal({ onSubmit, userEmail }: Patien
                 </div>
               </div>
             ))}
-            <Button
-              onClick={() => {
-                setExistingAppointments(null)
-                setFormData({ name: "", phone: "" })
-              }}
-              className="w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground"
-            >
-              Back to Registration
+            <Button onClick={goToDashboard} className="w-full mt-4 bg-primary hover:bg-primary/90 text-primary-foreground">
+              Go to Dashboard
             </Button>
           </div>
         ) : (

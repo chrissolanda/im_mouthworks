@@ -79,7 +79,9 @@ export default function HRInventory() {
       setInventory([newItem, ...inventory])
       setShowAddModal(false)
     } catch (error) {
-      console.error("[v0] Error adding inventory:", error)
+      // Log detailed error information in a safe way
+      const errMsg = error instanceof Error ? error.message : JSON.stringify(error)
+      console.error("[v0] Error adding inventory:", errMsg)
     }
   }
 
@@ -222,38 +224,53 @@ export default function HRInventory() {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredInventory.map((item) => (
-                    <tr key={item.id} className="border-b border-border hover:bg-muted/50 transition-colors">
-                      <td className="py-3 px-4 text-sm font-medium text-foreground">{item.name}</td>
-                      <td className="py-3 px-4 text-sm text-muted-foreground">{item.category || "-"}</td>
-                      <td className="py-3 px-4 text-sm font-semibold text-foreground">{item.quantity}</td>
-                      <td className="py-3 px-4 text-sm text-muted-foreground">{item.min_quantity}</td>
-                      <td className="py-3 px-4 text-sm text-muted-foreground">{item.supplier || "-"}</td>
-                      <td className="py-3 px-4">
-                        <span
-                          className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold ${
-                            item.status === "ok"
-                              ? "bg-green-100 text-green-700"
-                              : item.status === "low"
-                                ? "bg-yellow-100 text-yellow-700"
-                                : "bg-red-100 text-red-700"
-                          }`}
-                        >
-                          {item.status === "critical" && <AlertCircle className="w-3 h-3" />}
-                          {item.status === "low" && <TrendingDown className="w-3 h-3" />}
-                          {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4">
-                        <button
-                          onClick={() => handleDeleteItem(item.id)}
-                          className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-destructive"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+                  {filteredInventory.map((item) => {
+                    const itemPendingRequests = staffRequests.filter((r) => r.item_id === item.id && r.status === "pending")
+                    return (
+                      <tr key={item.id} className="border-b border-border hover:bg-muted/50 transition-colors">
+                        <td className="py-3 px-4">
+                          <div className="flex flex-col gap-1">
+                            <p className="text-sm font-medium text-foreground">{item.name}</p>
+                            {itemPendingRequests.length > 0 && (
+                              <span className="inline-flex items-center gap-1 w-fit px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-700">
+                                <span className="w-1.5 h-1.5 bg-blue-700 rounded-full"></span>
+                                {itemPendingRequests.length} pending request{itemPendingRequests.length !== 1 ? 's' : ''}
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td className="py-3 px-4 text-sm text-muted-foreground">{item.category || "-"}</td>
+                        <td className="py-3 px-4 text-sm font-semibold text-foreground">{item.quantity}</td>
+                        <td className="py-3 px-4 text-sm text-muted-foreground">{item.min_quantity}</td>
+                        <td className="py-3 px-4 text-sm text-muted-foreground">{item.supplier || "-"}</td>
+                        <td className="py-3 px-4">
+                          <div className="flex flex-col gap-2">
+                            <span
+                              className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-semibold w-fit ${
+                                item.status === "ok"
+                                  ? "bg-green-100 text-green-700"
+                                  : item.status === "low"
+                                    ? "bg-yellow-100 text-yellow-700"
+                                    : "bg-red-100 text-red-700"
+                              }`}
+                            >
+                              {item.status === "critical" && <AlertCircle className="w-3 h-3" />}
+                              {item.status === "low" && <TrendingDown className="w-3 h-3" />}
+                              {item.status.charAt(0).toUpperCase() + item.status.slice(1)}
+                            </span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <button
+                            onClick={() => handleDeleteItem(item.id)}
+                            className="p-1.5 hover:bg-destructive/10 rounded-lg transition-colors text-destructive"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>
@@ -263,7 +280,7 @@ export default function HRInventory() {
         {/* Staff Requests */}
         <Card>
           <CardHeader>
-            <CardTitle>Supply Requests from Staff</CardTitle>
+            <CardTitle>Supply Requests from Staff & Dentists</CardTitle>
             <CardDescription>
               {staffRequests.filter((r) => r.status === "pending").length} pending request(s)
             </CardDescription>
@@ -288,7 +305,7 @@ export default function HRInventory() {
                       <div>
                         <p className="font-semibold text-foreground">{request.inventory?.name || "Unknown Item"}</p>
                         <p className="text-sm text-muted-foreground">
-                          Requested by: {request.staff?.name || "Unknown"}
+                          Requested by: {request.dentists?.name || request.staff?.name || "Unknown"}
                         </p>
                       </div>
                       <span
